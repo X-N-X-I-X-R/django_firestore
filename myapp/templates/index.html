@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+
+
+  </script><script>
+  const URLS = [
+    "http://localhost:8000/login",
+    "http://localhost:8000/login/refresh",
+    "http://localhost:8000/logout",
+    "http://localhost:8000/register",
+    "http://localhost:8000/api/profiles/",
+    "http://localhost:8000/api/profiles/<int:pk>/follow",
+    "/api/profiles/create_user",
+    "http://localhost:8000/api/posts/",
+    "http://localhost:8000/api/posts/likes/",
+    "http://localhost:8000/api/posts/comments/",
+    "http://localhost:8000/api/follows/"
+  ];
+
+  // Example: Making a GET request to the first URL in the array
+  axios.get(URLS[0])
+    .then(response => {
+      console.log(response.data);
+    })
+    .catch(error => {
+      console.error(error);
+    });
+</script>
+</body>
+</html>
+</body>
+</html>
