@@ -1,0 +1,7 @@
+
+
+# creating a new access token for the user 
+to check if the user is logged in or not
+if the user is logged in then the user will be redirected to the home page
+if the user is not logged in then the user will be redirected to the login page
+'''
