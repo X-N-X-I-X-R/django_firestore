@@ -7,13 +7,14 @@ def validate_phone_number(value):
         raise ValidationError("Phone number must start with a '+' sign")
     if not value[1:].isdigit():
         raise ValidationError("Phone number must contain only digits after the '+' sign")
-    if len(value) < 10 or len(value) > 15:
+    if len(value) < 9 or len(value) > 20:
         raise ValidationError("Phone number must be between 10 and 15 digits long")
     return value
 
 # validation for birth date 
 def validate_birth_date(value):
-    if value > date.today() or value < date.today() - relativedelta(years=18):
+    today = timezone.now().date()
+    if value > today or value < today - relativedelta(years=18):
         raise ValidationError("Invalid birth date")
     
     
@@ -36,7 +37,7 @@ class UserProfile(models.Model):
     user_gender = models.CharField(max_length=1, choices=[('M', 'Male'), ('F', 'Female'), ('O', 'Other')], default='O')   
     user_country = models.CharField(max_length=25, default='United States')  
     user_phone = models.CharField(max_length=25, unique=True, validators=[RegexValidator(regex=r'^\+?1?\d{9,15}$', message="Phone number must be entered in the format: '+999999999'. Up to 15 digits allowed.")])
-    user_birth_date = models.DateField(default=timezone.now, validators=[validate_birth_date])
+    user_birth_date = models.DateField(default=timezone.now  , validators=[validate_birth_date])
     user_city = models.CharField(max_length=25)
     user_address = models.CharField(max_length=25, blank=True, null=True, help_text="Optional")    
     user_register_date = models.DateTimeField(auto_now_add=True,)

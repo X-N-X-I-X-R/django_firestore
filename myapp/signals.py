@@ -3,20 +3,22 @@ from django.dispatch import receiver
 from .models_folder.models import Notification, UserProfile, Post, Comment, Like, Follow, ActivityLog, Message
 from django.core.mail import send_mail
 from django.utils import timezone, dateformat
+from django.contrib.auth.models import User
+
 
 def create_activity_log(user, action):
   formatted_time = dateformat.format(timezone.now(), 'Y-m-d H:i:s')
   ActivityLog.objects.create(user=user, action=action, time=formatted_time)
 
-@receiver(post_save, sender=UserProfile)
+
+
+@receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
   if created:
-    
     UserProfile.objects.create(user=instance)
+    print(f'User profile created for {instance.username}') 
 
-@receiver(post_save, sender=UserProfile)
-def save_user_profile(sender, instance, **kwargs):
-  instance.profile.save()
+
 
 @receiver(post_save, sender=Post)
 def handle_post_save(sender, instance, created, **kwargs):

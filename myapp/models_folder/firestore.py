@@ -21,51 +21,50 @@ db = firestore.client()
 def fire_db(db):
   if db:
     data = (
-
       # User
       {
         "model": "User",
-        "data": list(User.objects.all().values())
+        "data": User.objects.all().values()
       },
       # UserProfile
       {
         "model": "UserProfile",
-        "data": list(UserProfile.objects.all().values())
+        "data": UserProfile.objects.all().values()
       },
       # Post
       {
         "model": "Post",
-        "data": list(Post.objects.all().values())
+        "data": Post.objects.all().values()
       },
       # Comment
       {
         "model": "Comment",
-        "data": list(Comment.objects.all().values())
+        "data": Comment.objects.all().values()
       },
       # Like
       {
         "model": "Like",
-        "data": list(Like.objects.all().values())
+        "data": Like.objects.all().values()
       },
       # Follow
       {
         "model": "Follow",
-        "data": list(Follow.objects.all().values())
+        "data": Follow.objects.all().values()
       },
       # ActivityLog
       {
         "model": "ActivityLog",
-        "data": list(ActivityLog.objects.all().values())
+        "data": ActivityLog.objects.all().values()
       },
       # Notification
       {
         "model": "Notification",
-        "data": list(Notification.objects.all().values())
+        "data": Notification.objects.all().values()
       },
       # Message
       {
         "model": "Message",
-        "data": list(Message.objects.all().values())
+        "data": Message.objects.all().values()
       }
     )
     for d in data:
@@ -79,10 +78,3 @@ def fire_db(db):
     raise ValueError("Firestore not initialized") 
 
   return db,data
-
-
-
-try:
-  fire_db(db)
-except ValueError as e:
-  print(e)

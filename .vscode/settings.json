@@ -1,4 +1,9 @@
 {
   "commentTranslate.targetLanguage": "he",
-  "docwriter.style": "Google"
+  "docwriter.style": "Google",
+  "github.copilot.chat.localeOverride": "en",
+  "makefile.makePath": "m",
+  "editor.fontLigatures": false,
+  "debug.javascript.debugByLinkOptions": "on",
+  "editor.fontWeight": "normal"
 }
