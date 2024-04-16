@@ -1,12 +1,11 @@
+# firestore.py imports
 from django import apps
-import firebase_admin
 from firebase_admin import credentials, firestore
-from myapp.models_folder.models import Post, Comment, Like, Follow, UserProfile, ActivityLog, Notification, Message
+from myapp.models import Post, Comment, Like, Follow, UserProfile, ActivityLog, Notification, Message
 from django.contrib.auth.models import User
-
 from datetime import date, datetime
 
-# Assuming `date_obj` is your datetime.date object
+import firebase_admin
 
 jsjey = "/Users/elmaliahmac/Documents/json_keys/serviceAccountKey.json"
 

@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models_folder.models import UserProfile, Post, Comment, Like, Follow
+
+from myapp.models import Follow, Like, Post, UserProfile , Comment
 
 class UserProfileAdmin(admin.ModelAdmin):
     exclude = ('last_login', 'last_name',)

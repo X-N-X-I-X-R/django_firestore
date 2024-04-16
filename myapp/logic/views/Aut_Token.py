@@ -13,7 +13,7 @@ from django.core.exceptions import ValidationError
 
 from termcolor import colored
 
-from myapp.models_folder.models import UserProfile
+from myapp.models import UserProfile
 
 class AutenticacionToken(TokenObtainPairSerializer):
     @classmethod
@@ -35,12 +35,13 @@ class AutenticacionToken(TokenObtainPairSerializer):
 
         if user.is_superuser:
             token['user_permissions'] = "The king, All permissions Allow"
+  
         else:
             permissions = user.user_permissions.all()
             token['user_permissions'] = ', '.join(perm.codename for perm in permissions)
             print(colored('User permissions: ' + token['user_permissions'], 'green'))
 
-        return token
+        return token ,
     
 class AutenticacionTokenView(TokenObtainPairView):
     serializer_class = AutenticacionToken
@@ -62,3 +63,7 @@ class LogoutView(APIView):
 
         print(colored('Token blacklisted successfully', 'green'))
         return Response(status=status.HTTP_205_RESET_CONTENT)
+
+
+from django.http import JsonResponse
+

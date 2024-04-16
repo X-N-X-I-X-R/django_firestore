@@ -1,22 +1,13 @@
 from rest_framework import routers
 from django.urls import path, include
 from rest_framework_simplejwt.views import TokenRefreshView
-from myapp.logic.views.users_viewset import ActivityLogViewSet, CommentViewSet, FollowViewSet, LikeViewSet, MessageViewSet, NotificationViewSet, PostViewSet, RegisterViewSet, UserProfileViewSet, UserViewSet
+
+
+from myapp.logic.views.users_viewset import CommentViewSet, LikeViewSet, PostViewSet, UserProfileViewSet, FollowViewSet, NotificationViewSet, ActivityLogViewSet, MessageViewSet, UserViewSet, RegisterViewSet
 from .logic.views.Aut_Token import AutenticacionTokenView, LogoutView  
 from django.conf import settings
 from django.conf.urls.static import static
 
-
-
-
-'''
-This code defines the URL routing for a Django application. We're using Django Rest Framework's routers to automatically generate URLs for our viewsets. We create two routers: one for posts-related URLs and one for the rest. We register our viewsets with the routers, specifying a URL prefix for each one. We also add a custom route for the 'follow' action in UserProfileViewSet. Finally, we define the URLs for login, logout, register, and the API endpoints. If DEBUG is enabled, we also add a URL pattern for serving media files.
-
-'''
-
-'''
-FOR All Api's  ---->>>   Swagger   ==   (http://localhost:8000/swagger/ )  -- > project/urls.py   
-'''
 
 
 
@@ -43,7 +34,8 @@ urlpatterns = [
     path('login/refresh', TokenRefreshView.as_view(), name='token_refresh'),
     path('logout', LogoutView.as_view(), name='logout'),
     path('api/', include(router.urls)),
-    path('api/posts/', include(posts_router.urls)),  # Include the posts URLs
+    path('api/posts/', include(posts_router.urls)), 
+
 
 ]
 

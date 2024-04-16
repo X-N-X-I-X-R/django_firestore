@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Handshake</title>
+</head>
+<body>
+  <h1>Welcome, {{ request.user.username }}!</h1>
+  <form method="post">
+    {% csrf_token %}
+    <!-- Add your form fields here. For example, you can add a button that
+         the user can click to send the POST request. -->
+    <input type="submit" value="Go to Swagger UI">
+  </form>
+</body>
+</html>

@@ -1,30 +1,17 @@
+
+#viewsets 
 from rest_framework import status, viewsets
-from django.contrib.auth.hashers import make_password
-from rest_framework.permissions import AllowAny
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from myapp.models_folder.serializers import RegisterSerializer
 import firebase_admin
-from firebase_admin import credentials, firestore, get_app, initialize_app
-from django.forms.models import model_to_dict
-from myapp.models_folder.firestore import fire_db   # Import the fire_db function
 
-
-
-
-from myapp.models_folder.models import (
-    ActivityLog, Comment, Follow, Like, Message, 
-    Notification, Post, UserProfile
-)
-from myapp.models_folder.serializers import (
+from myapp.firestore import fire_db
+from myapp.models import ActivityLog, Comment, Follow, Like, Message, Notification, Post, UserProfile
+from myapp.serializers import (
     ActivityLogSerializers, AutUser, CommentSerializers, FollowSerializers, 
     LikeSerializers, MessageSerializers, NotificationSerializers, 
-    PostSerializers, UserProfileSerializers
-)
-
+    PostSerializers, RegisterSerializer, UserProfileSerializers)
 from django.contrib.auth.models import User
-
-
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()

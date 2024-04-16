@@ -1,3 +1,6 @@
+
+
+# color codes menu  - https://misc.flogisoft.com/bash/tip_colors_and_formatting
 # \033[0;30m - Black
 # \033[0;31m - Red
 # \033[0;32m - Green
@@ -7,8 +10,13 @@
 # \033[0;36m - Cyan
 # \033[0;37m - White
 
+
+
+
 # phonty targets are not files but commands that are not associated with files in the file system 
 .PHONY: runserver makemigrations migrate createsuperuser freeze install requirements virtualenv env python-decouple dec.env source env/bin/activate runenv deactivate killenv gitremove rm-rf gitdelete djangomongo djangofirebase django-mongodb-engine
+
+
 
 rund:
 	# Run the Django development server
@@ -71,3 +79,48 @@ djangofirebase:
 
 #	@printf "\033[0;32m%s\033[0m\n" "YES MY KING !" "running the Django development server"
 # Run the Django development server
+
+
+
+
+
+
+Django:
+
+Django==5.0.3
+django-cors-headers==4.3.1
+django-firebase-orm==0.6.1
+django-mongodb-engine==0.6.0
+django-rest-swagger==2.2.0
+djangorestframework==3.14.0
+djangorestframework-simplejwt==5.3.1
+djangotoolbox==1.8.0
+Flask:
+
+Flask==3.0.1
+Web Scraping:
+
+beautifulsoup4==4.12.3
+requests==2.31.0
+urllib3==1.26.18
+API Clients:
+
+google-api-python-client==2.124.0
+polygon-api-client==1.13.4
+Authentication:
+
+PyJWT==2.8.0
+firebase-admin==6.5.0
+Database:
+
+pymongo==4.6.3
+SQLAlchemy==2.0.29
+Development Tools:
+
+click==8.1.7
+Werkzeug==3.0.1
+Others:
+
+Jinja2==3.1.3 (templating engine)
+Pillow==10.2.0 (image processing)
+cachetools==5.3.3 (caching)

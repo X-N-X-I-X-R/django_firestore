@@ -1,11 +1,7 @@
 from django.forms import ValidationError
 from rest_framework import serializers
-from myapp.models_folder.models import UserProfile, Post, Comment, Like, Follow, Notification, ActivityLog, Message
+from myapp.models import UserProfile, Post, Comment, Like, Follow, Notification, ActivityLog, Message
 from django.contrib.auth.models import User 
-
-
-
-
 
 
 class AutUser(serializers.ModelSerializer):
@@ -53,9 +49,6 @@ class MessageSerializers(serializers.ModelSerializer):
     model = Message
     fields = '__all__'
     
-    
-from rest_framework import serializers
-from .models import UserProfile
 
 
       

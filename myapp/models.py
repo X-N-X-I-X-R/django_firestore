@@ -1,34 +1,30 @@
-from django import db
-from .imports  import  Group, Permission, models, _, MinValueValidator, MaxValueValidator,MinLengthValidator, MaxLengthValidator,RegexValidator,FileExtensionValidator,relativedelta,date, FileExtensionValidator, Image, GenericForeignKey, ContentType, ValidationError,timezone ,User,ValidationError,ValidationError
 
-# validation for phone number
-def validate_phone_number(value):
-    if not value.startswith('+'):
-        raise ValidationError("Phone number must start with a '+' sign")
-    if not value[1:].isdigit():
-        raise ValidationError("Phone number must contain only digits after the '+' sign")
-    if len(value) < 9 or len(value) > 20:
-        raise ValidationError("Phone number must be between 10 and 15 digits long")
-    return value
+from myapp.imports import *
+
 
 # validation for birth date 
 def validate_birth_date(value):
     today = timezone.now().date()
     if value > today or value < today - relativedelta(years=18):
         raise ValidationError("Invalid birth date")
-    
-    
-from django.core.exceptions import ValidationError
+
+def default_date():
+    return timezone.now().date() - relativedelta(years=18)
 
 def validate_image_file_size(value):
+    valid_types = ["image/png", "image/jpg", "image/jpeg", "image/gif", "image/bmp", "image/webp", "image/svg+xml", "image/tiff", "image/vnd.microsoft.icon", "image/vnd.wap.wbmp", "image/x-icon", "image/x-jng", "image/x-ms-bmp", "image/x-portable-bitmap", "image/x-xbitmap", "image/x-xpixmap", "image/x-xwindowdump"]
+    
+    if value.content_type not in valid_types:
+        raise ValidationError("Unsupported file type")
+    
     filesize = value.size
     
-    if filesize > 1048576:  # 1MB
-        raise ValidationError("The maximum file size that can be uploaded is 1MB")
-    else:
-        return value    
+    if filesize < 4000000 or filesize > 7000000:  # 4MB to 7MB
+        raise ValidationError("The file size must be between 4MB and 7MB")
 
-# User model with personal details and access permissions to groups and specific user permissions
+def default_image():
+    return "myapp/public/default.jpeg"
+
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     username = models.CharField(max_length=25, editable=False)
@@ -37,57 +33,17 @@ class UserProfile(models.Model):
     user_gender = models.CharField(max_length=1, choices=[('M', 'Male'), ('F', 'Female'), ('O', 'Other')], default='O')   
     user_country = models.CharField(max_length=25, default='United States')  
     user_phone = models.CharField(max_length=25, unique=True, validators=[RegexValidator(regex=r'^\+?1?\d{9,15}$', message="Phone number must be entered in the format: '+999999999'. Up to 15 digits allowed.")])
-    user_birth_date = models.DateField(default=timezone.now  , validators=[validate_birth_date])
+    user_birth_date = models.DateField(validators=[validate_birth_date], help_text="Enter your birth date in the format: YYYY-MM-DD", default=default_date)
     user_city = models.CharField(max_length=25)
     user_address = models.CharField(max_length=25, blank=True, null=True, help_text="Optional")    
     user_register_date = models.DateTimeField(auto_now_add=True,)
     last_login = models.DateTimeField(auto_now=True)
-    user_imag_container = models.URLField(blank=True, null=True)
-    user_profile_imag = models.URLField(blank=True, null=True)
-    groups = models.ManyToManyField(
-        Group,
-        verbose_name=_('groups'),
-        blank=True,
-        help_text=_(
-            'The groups this user    belongs to. A user will get all permissions '
-            'granted to each of their groups.'
-        ),
-        related_name="%(app_label)s_%(class)s_related",
-        related_query_name="%(app_label)s_%(class)ss",
-        
-    ) # check permissions&groups.py for the groups and permissions assignment  
-
-    user_permissions = models.ManyToManyField(
-        Permission,
-        verbose_name=_('user permissions'),
-        blank=True,
-        help_text=_('Specific permissions for this user.'),
-        related_name="%(app_label)s_%(class)s_related",
-        related_query_name="%(app_label)s_%(class)ss",
-    )
+    user_image_container = models.ImageField(blank=True, null=True, validators=[validate_image_file_size])
+    user_profile_image = models.ImageField(default=default_image, blank=True, null=True)
     
-
-    def __str__(self):  
+    def __str__(self):
         return self.username
-    
-    def save(self, *args, **kwargs):
-        print("Saving user profile")
-        # If this is an existing instance (i.e., not a new user), and the user is not an admin
-        if self.pk is not None and not self.user.is_superuser:
-            # Get the old instance from the database
-            old_instance = UserProfile.objects.get(pk=self.pk)  # No need to access the id attribute of the User object
-            # If the groups or user_permissions have been changed
-            if set(self.groups.all()) != set(old_instance.groups.all()) or \
-               set(self.user_permissions.all()) != set(old_instance.user_permissions.all()):
-                # Revert the changes
-                self.groups.set(old_instance.groups.all())
-                self.user_permissions.set(old_instance.user_permissions.all())
-                # Optionally, raise a ValidationError to inform the user that they can't change their groups or permissions
-                raise ValidationError("Non-admin users can't change their groups or permissions")
 
-        self.username = self.user.username
-        self.email = self.user.email
-        super().save(*args, **kwargs)
 
  
         
@@ -182,3 +138,4 @@ class Message(models.Model):
     def __str__(self):     
         return f"Message from {self.sender.username} to {self.recipient.username}"
     
+

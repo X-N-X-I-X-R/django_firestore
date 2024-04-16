@@ -1,15 +1,13 @@
 
 from datetime import timedelta
 import os
-
 from pathlib import Path
 import sentry_sdk
 
 
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-
 
 
 from decouple import config
@@ -66,6 +64,9 @@ REST_FRAMEWORK = {
     )
 }
 
+
+
+
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=90),
@@ -104,14 +105,11 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
     'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
+    
 }
 
 
-
-
-
-
-MIDDLEWARE = [
+MIDDLEWARE = [ 
     'corsheaders.middleware.CorsMiddleware',  # This should be first
 
     'django.middleware.security.SecurityMiddleware',
@@ -127,10 +125,9 @@ ROOT_URLCONF = 'project.urls'
 
 import sentry_sdk 
 from sentry_sdk.integrations.django import DjangoIntegration
-from decouple import config 
+from sentry_sdk.crons import monitor
+from decouple import config,AutoConfig
 
-# Import the AutoConfig class from the decouple module
-from decouple import AutoConfig
 
 # Create an instance of the AutoConfig class
 config = AutoConfig()
@@ -142,6 +139,9 @@ sentry_sdk.init(
     integrations=[DjangoIntegration()]
     
 )
+@monitor(monitor_slug='my-cron-monitor')
+def tell_the_world(msg):
+    print(msg)
 
 TEMPLATES = [
     {
