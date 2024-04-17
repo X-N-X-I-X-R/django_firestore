@@ -12,6 +12,14 @@ from myapp.serializers import (
     LikeSerializers, MessageSerializers, NotificationSerializers, 
     PostSerializers, RegisterSerializer, UserProfileSerializers)
 from django.contrib.auth.models import User
+from django.core.mail import send_mail
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.urls import reverse
+from django.contrib.sites.shortcuts import get_current_site
+
+
+
+
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -81,6 +89,21 @@ class MessageViewSet(viewsets.ModelViewSet):
 
 
 
+from firebase_admin import credentials, firestore, initialize_app, get_app
+
+# Initialize Firebase Admin SDK and Firestore client once when your application starts
+cred = credentials.Certificate("/Users/elmaliahmac/Documents/json_keys/serviceAccountKey.json")
+
+try:
+    default_app = get_app()
+except ValueError as e:
+    default_app = initialize_app(cred)
+
+db = firestore.client()
+
+
+
+# Viewset for user registration and email verification 
 class RegisterViewSet(viewsets.GenericViewSet):
     serializer_class = RegisterSerializer
 
@@ -91,15 +114,31 @@ class RegisterViewSet(viewsets.GenericViewSet):
             user = User.objects.create_user(
                 username=serializer.validated_data['username'],
                 email=serializer.validated_data['email'],
-                password=serializer.validated_data['password']
+                password=serializer.validated_data['password'],
+                is_active=False  # User is not active until email is validated
             )
             # Save the User instance
             user.save()
 
-            # Initialize Firestore and sync data
-            cred = credentials.Certificate("Users/elmaliahmac/Documents/json_keys/serviceAccountKey.json")
-            firebase_admin.initialize_app(cred)
-            db = firestore.client()
+            # Generate a token for the user
+            refresh = RefreshToken.for_user(user)
+            access_token = str(refresh)
+
+            # Generate a validation link
+            current_site = get_current_site(request).domain
+            relative_link = reverse('email-verify')
+            abs_url = 'http://'+current_site+relative_link+"?token="+access_token
+
+            # Send a validation email
+            send_mail(
+                'Verify your email',
+                'Hi '+user.username+', use the link below to verify your email \n' + abs_url,
+                'noreply@mywebsite.com',
+                [user.email],
+                fail_silently=False,
+            )
+
+            # Use the Firestore client
             try:
                 fire_db(db)
             except ValueError as e:

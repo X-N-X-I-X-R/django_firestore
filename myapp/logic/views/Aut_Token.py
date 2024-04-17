@@ -21,7 +21,7 @@ class AutenticacionToken(TokenObtainPairSerializer):
         print(colored('Getting token for user: ' + user.username, 'green'))
         token = super().get_token(user)
 
-        # Add custom claimss
+        # Add custom claims
         token['is_staff'] = user.is_staff
         token['is_superuser'] = user.is_superuser
         token['is_active'] = user.is_active
@@ -35,13 +35,12 @@ class AutenticacionToken(TokenObtainPairSerializer):
 
         if user.is_superuser:
             token['user_permissions'] = "The king, All permissions Allow"
-  
         else:
             permissions = user.user_permissions.all()
             token['user_permissions'] = ', '.join(perm.codename for perm in permissions)
             print(colored('User permissions: ' + token['user_permissions'], 'green'))
 
-        return token ,
+        return token  # Removed the comma here
     
 class AutenticacionTokenView(TokenObtainPairView):
     serializer_class = AutenticacionToken
@@ -65,5 +64,5 @@ class LogoutView(APIView):
         return Response(status=status.HTTP_205_RESET_CONTENT)
 
 
-from django.http import JsonResponse
+
 
