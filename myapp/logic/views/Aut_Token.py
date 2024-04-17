@@ -13,7 +13,7 @@ from django.core.exceptions import ValidationError
 
 from termcolor import colored
 
-from myapp.models import UserProfile
+from myapp.models.models import UserProfile
 
 class AutenticacionToken(TokenObtainPairSerializer):
     @classmethod

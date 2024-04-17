@@ -5,7 +5,6 @@ from pathlib import Path
 import sentry_sdk
 
 
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -31,6 +30,7 @@ ALLOWED_HOSTS = ["*"]
 # db = firestore.client()
 
 
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -38,15 +38,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-   'myapp.apps.MyAppConfig', 
-    'rest_framework',
+    'myapp',
     'corsheaders',
     'rest_framework_simplejwt.token_blacklist',
     'drf_yasg',
-
-
-    
 ]
+
 SWAGGER_SETTINGS = {
     'SECURITY_DEFINITIONS': {
         'basic': {

@@ -52,12 +52,12 @@ decouple:
 	pip install python-decouple
 
 envr:
-	# Activate the virtual environment	
+		# Activate the virtual environment	
 	source env/bin/activate
 
 envk:
-	# Deactivate the virtual environment
-	deactivate
+    # Deactivate the virtual environment
+	@echo "To deactivate the virtual environment, run 'deactivate' in your shell."
 
 gitremove:
 	# Remove the .git folder and all its contents from the current directory and all subdirectories recursively 

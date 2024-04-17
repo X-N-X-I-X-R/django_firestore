@@ -1,6 +1,6 @@
 from django.forms import ValidationError
 from rest_framework import serializers
-from myapp.models import UserProfile, Post, Comment, Like, Follow, Notification, ActivityLog, Message
+from myapp.models.models import UserProfile, Post, Comment, Like, Follow, Notification, ActivityLog, Message
 from django.contrib.auth.models import User 
 
 

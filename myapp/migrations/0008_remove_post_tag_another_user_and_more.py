@@ -2,7 +2,7 @@
 
 import django.core.validators
 import django.db.models.deletion
-import myapp.models
+import myapp.models.models
 from django.conf import settings
 from django.db import migrations, models
 
@@ -239,7 +239,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='post',
             name='image',
-            field=models.ImageField(blank=True, help_text='Upload an image for the post.', null=True, upload_to='posts/', validators=[myapp.models.validate_image_file_size]),
+            field=models.ImageField(blank=True, help_text='Upload an image for the post.', null=True, upload_to='posts/', validators=[myapp.models.models.validate_image_file_size]),
         ),
         migrations.AlterField(
             model_name='post',
@@ -284,7 +284,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='userprofile',
             name='user_image_container',
-            field=models.ImageField(blank=True, help_text='Upload your image.', null=True, upload_to='', validators=[myapp.models.validate_image_file_size]),
+            field=models.ImageField(blank=True, help_text='Upload your image.', null=True, upload_to='', validators=[myapp.models.models.validate_image_file_size]),
         ),
         migrations.AlterField(
             model_name='userprofile',
@@ -294,7 +294,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='userprofile',
             name='user_profile_image',
-            field=models.ImageField(blank=True, default=myapp.models.default_image, help_text='Upload your profile image.', null=True, upload_to=''),
+            field=models.ImageField(blank=True, default=myapp.models.models.default_image, help_text='Upload your profile image.', null=True, upload_to=''),
         ),
         migrations.AlterField(
             model_name='userprofile',

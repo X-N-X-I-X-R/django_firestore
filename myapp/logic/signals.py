@@ -1,6 +1,6 @@
 from django.db.models.signals import post_save, post_delete, pre_save
 from django.dispatch import receiver
-from .models import Notification, UserProfile, Post, Comment, Like, Follow, ActivityLog, Message
+from ..models.models import Notification, UserProfile, Post, Comment, Like, Follow, ActivityLog, Message
 from django.core.mail import send_mail
 from django.utils import timezone, dateformat
 from django.contrib.auth.models import User

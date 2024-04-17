@@ -4,7 +4,7 @@ from rest_framework_simplejwt.views import TokenRefreshView
 
 
 from myapp.logic.views.users_viewset import CommentViewSet, LikeViewSet, PostViewSet, UserProfileViewSet, FollowViewSet, NotificationViewSet, ActivityLogViewSet, MessageViewSet, UserViewSet, RegisterViewSet
-from .logic.views.Aut_Token import AutenticacionTokenView, LogoutView  
+from ..logic.views.Aut_Token import AutenticacionTokenView, LogoutView  
 from django.conf import settings
 from django.conf.urls.static import static
 

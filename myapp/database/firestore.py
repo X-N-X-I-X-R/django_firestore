@@ -1,7 +1,7 @@
 # firestore.py imports
 from django import apps
 from firebase_admin import credentials, firestore
-from myapp.models import Post, Comment, Like, Follow, UserProfile, ActivityLog, Notification, Message
+from myapp.models.models import Post, Comment, Like, Follow, UserProfile, ActivityLog, Notification, Message
 from django.contrib.auth.models import User
 from datetime import date, datetime
 

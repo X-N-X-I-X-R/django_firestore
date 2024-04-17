@@ -5,7 +5,7 @@ import django.contrib.auth.validators
 import django.core.validators
 import django.db.models.deletion
 import django.utils.timezone
-import myapp.models
+import myapp.models.models
 from django.db import migrations, models
 
 
@@ -34,7 +34,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('post_id', models.AutoField(primary_key=True, serialize=False)),
                 ('content', models.TextField(default='No content', help_text='The post must be between 1 and 500 characters long.', validators=[django.core.validators.MinLengthValidator(1), django.core.validators.MaxLengthValidator(750)])),
-                ('image', models.ImageField(blank=True, null=True, upload_to='posts/', validators=[django.core.validators.FileExtensionValidator(['png', 'jpg', 'jpeg']), myapp.models.validate_image_file_size])),
+                ('image', models.ImageField(blank=True, null=True, upload_to='posts/', validators=[django.core.validators.FileExtensionValidator(['png', 'jpg', 'jpeg']), myapp.models.models.validate_image_file_size])),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('is_private', models.BooleanField(default=False)),
                 ('comments', models.ManyToManyField(blank=True, related_name='post_comments', to='myapp.comment')),
@@ -62,13 +62,13 @@ class Migration(migrations.Migration):
                 ('user_gender', models.CharField(choices=[('M', 'Male'), ('F', 'Female'), ('O', 'Other')], default='O', max_length=1)),
                 ('user_country', models.CharField(default='United States', max_length=25)),
                 ('user_phone', models.CharField(max_length=25, unique=True, validators=[django.core.validators.RegexValidator(message="Phone number must be entered in the format: '+999999999'. Up to 15 digits allowed.", regex='^\\+?1?\\d{9,15}$')])),
-                ('user_birth_date', models.DateField(default=django.utils.timezone.now, validators=[myapp.models.validate_birth_date])),
+                ('user_birth_date', models.DateField(default=django.utils.timezone.now, validators=[myapp.models.models.validate_birth_date])),
                 ('user_city', models.CharField(max_length=25)),
                 ('user_address', models.CharField(blank=True, help_text='Optional', max_length=25, null=True)),
                 ('user_register_date', models.DateTimeField(auto_now_add=True)),
                 ('last_login', models.DateTimeField(auto_now=True)),
-                ('user_imag_container', models.ImageField(blank=True, null=True, upload_to='User_pics/uploaded_pics', validators=[django.core.validators.FileExtensionValidator(['png', 'jpg', 'jpeg']), myapp.models.validate_image_file_size])),
-                ('user_profile_imag', models.ImageField(blank=True, null=True, upload_to='User_pics/profile_pics', validators=[django.core.validators.FileExtensionValidator(['png', 'jpg', 'jpeg']), myapp.models.validate_image_file_size])),
+                ('user_imag_container', models.ImageField(blank=True, null=True, upload_to='User_pics/uploaded_pics', validators=[django.core.validators.FileExtensionValidator(['png', 'jpg', 'jpeg']), myapp.models.models.validate_image_file_size])),
+                ('user_profile_imag', models.ImageField(blank=True, null=True, upload_to='User_pics/profile_pics', validators=[django.core.validators.FileExtensionValidator(['png', 'jpg', 'jpeg']), myapp.models.models.validate_image_file_size])),
                 ('groups', models.ManyToManyField(blank=True, help_text='The groups this user belongs to. A user will get all permissions granted to each of their groups.', related_name='%(app_label)s_%(class)s_related', related_query_name='%(app_label)s_%(class)ss', to='auth.group', verbose_name='groups')),
                 ('user_permissions', models.ManyToManyField(blank=True, help_text='Specific permissions for this user.', related_name='%(app_label)s_%(class)s_related', related_query_name='%(app_label)s_%(class)ss', to='auth.permission', verbose_name='user permissions')),
             ],
