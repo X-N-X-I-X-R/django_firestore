@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'myapp',
     'corsheaders',
+    'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
     'drf_yasg',
 ]
@@ -143,7 +144,7 @@ def tell_the_world(msg):
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

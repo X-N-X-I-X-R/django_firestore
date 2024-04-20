@@ -8,13 +8,14 @@ from django.contrib.auth.models import User
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
   if created:
+    print('User created message from --> receivers (signals.py)')
     UserProfile.objects.create(user=instance)
 
 # Signal to save the UserProfile instance whenever the related User instance is saved
 @receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):
   instance.userprofile.save()
-
+  print('User saved message from --> receivers (signals.py)')
 # Signal to create an ActivityLog instance whenever a new Post, Comment, Like, Follow, Notification, or Message instance is created
 @receiver(post_save, sender=Post)
 @receiver(post_save, sender=Comment)
@@ -25,6 +26,7 @@ def save_user_profile(sender, instance, **kwargs):
 def create_activity_log(sender, instance, created, **kwargs):
   if created:
     ActivityLog.objects.create(content_object=instance)
+    print('ActivityLog created message from --> receivers (signals.py)')
 
 # Signal to delete the ActivityLog instance whenever the related Post, Comment, Like, Follow, Notification, or Message instance is deleted
 @receiver(pre_delete, sender=Post)
@@ -35,6 +37,7 @@ def create_activity_log(sender, instance, created, **kwargs):
 @receiver(pre_delete, sender=Message)
 def delete_activity_log(sender, instance, **kwargs):
   ActivityLog.objects.filter(content_object=instance).delete()
+  print('ActivityLog deleted message from --> receivers (signals.py)')    
   
   '''
   signals in django is a way to allow certain senders to notify a set of receivers when some action has taken place. They’re especially useful when many pieces of code may be interested in the same events. 

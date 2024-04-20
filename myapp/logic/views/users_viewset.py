@@ -22,7 +22,7 @@ class UserProfileViewSet(viewsets.ViewSet):
         List all user profiles.
         """
         queryset = UserProfile.objects.all()
-        serializer = UserProfileSerializer(queryset, many=True)
+        serializer = UserProfileSerializers(queryset, many=True)
         return Response(serializer.data)
 
     def retrieve(self, request, pk=None):
@@ -31,7 +31,7 @@ class UserProfileViewSet(viewsets.ViewSet):
         """
         try:
             user_profile = UserProfile.objects.get(pk=pk)
-            serializer = UserProfileSerializer(user_profile)
+            serializer = UserProfileSerializers(user_profile)
             return Response(serializer.data)
         except UserProfile.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
