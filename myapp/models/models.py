@@ -21,7 +21,9 @@ class UserProfile(models.Model):
     user_bio = models.TextField(validators=[MinLengthValidator(1), MaxLengthValidator(500)], help_text="The bio must be between 1 and 500 characters long.", default="No bio", blank=False, null=False) 
     user_website = models.URLField(max_length=200, blank=True, null=True, default="No website added", help_text="Enter your website URL.") 
     user_image_container = models.ImageField(blank=True, null=True, validators=[validate_image_file_size], help_text="Upload your image.") 
-    user_profile_image = models.ImageField(default=default_image, blank=True, null=True, help_text="Upload your profile image.") 
+    user_profile_image = models.ImageField(default=default_image, blank=True, null=True, help_text="Upload your profile image.")
+    active = models.BooleanField(default=True)
+     
 
     def __str__(self):
         return self.user_nickname

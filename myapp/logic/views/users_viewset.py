@@ -1,4 +1,6 @@
 from myapp.imports.views_imports import *
+from myapp.logic.convert_complex_data.serializers import *
+
 
 
 
@@ -8,83 +10,382 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = AutUser
     
     
-class UserProfileViewSet(viewsets.ModelViewSet):
-    """Viewset for the UserProfile model."""
-    queryset = UserProfile.objects.all()
-    serializer_class = UserProfileSerializers
 
-    @action(detail=False, methods=['get'], url_path='search')
-    def search(self, request):
-        query = request.query_params.get('query', '')
-        users = UserProfile.objects.filter(user__username__icontains=query)
-        serializer = UserProfileSerializers(users, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    
-    
-        
 
+class UserProfileViewSet(viewsets.ViewSet):
+    """
+    A ViewSet for viewing and editing user profiles.
+    """
+
+    def list(self, request):
+        """
+        List all user profiles.
+        """
+        queryset = UserProfile.objects.all()
+        serializer = UserProfileSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk=None):
+        """
+        Retrieve a single user profile by its id.
+        """
+        try:
+            user_profile = UserProfile.objects.get(pk=pk)
+            serializer = UserProfileSerializer(user_profile)
+            return Response(serializer.data)
+        except UserProfile.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+    def create(self, request):
+        """
+        Create a new user profile.
+        """
+        serializer = UserProfileSerializers(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, request, pk=None):
+        """
+        Update an existing user profile.
+        """
+        try:
+            user_profile = UserProfile.objects.get(pk=pk)
+            serializer = UserProfileSerializer(user_profile, data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except UserProfile.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+    def destroy(self, request, *args, **kwargs):
+        """
+        Deactivate the user account.
+        """
+        try:
+            user_profile = UserProfile.objects.get(pk=kwargs['pk'])
+            user_profile.active = True
+            user_profile.save()
+            return Response({"message": "The profile has been removed."}, status=status.HTTP_200_OK)
+        except UserProfile.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
 
 class PostViewSet(viewsets.ModelViewSet):
-    """Viewset for the Post model."""
+    """
+    A ViewSet for viewing and editing posts.
+    """
+
+
     queryset = Post.objects.all()
-    serializer_class = PostSerializers
+    serializer_class = PostSerializer
+    def retrieve(self, request, *args, **kwargs):
+        """
+        Retrieve a single post by its id.
+        """
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+    def create(self, request, *args, **kwargs):
+        """
+        Create a new post.
+        """
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def update(self, request, *args, **kwargs):
+        """
+        Update an existing post.
+        """
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
+
+    def destroy(self, request, *args, **kwargs):
+        """
+        Delete a post.
+        """
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class CommentViewSet(viewsets.ModelViewSet):
-    """Viewset for the Comment model."""
+    """
+    A ViewSet for viewing and editing comments.
+    """
     queryset = Comment.objects.all()
     serializer_class = CommentSerializers
 
+    def retrieve(self, request, *args, **kwargs):
+        """
+        Retrieve a single comment by its id.
+        """
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+    def create(self, request, *args, **kwargs):
+        """
+        Create a new comment.
+        """
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def update(self, request, *args, **kwargs):
+        """
+        Update an existing comment.
+        """
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
+
+    def destroy(self, request, *args, **kwargs):
+        """
+        Delete a comment.
+        """
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class LikeViewSet(viewsets.ModelViewSet):
-    """Viewset for the Like model."""
+    """
+    A ViewSet for viewing and editing likes.
+    """
     queryset = Like.objects.all()
     serializer_class = LikeSerializers
 
+    def retrieve(self, request, *args, **kwargs):
+        """
+        Retrieve a single like by its id.
+        """
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+    def create(self, request, *args, **kwargs):
+        """
+        Create a new like.
+        """
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def update(self, request, *args, **kwargs):
+        """
+        Update an existing like.
+        """
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
+
+    def destroy(self, request, *args, **kwargs):
+        """
+        Delete a like.
+        """
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class FollowViewSet(viewsets.ModelViewSet):
-    """Viewset for the Follow model."""
+    """
+    A ViewSet for viewing and following users.
+    """
     queryset = Follow.objects.all()
     serializer_class = FollowSerializers
 
+    def retrieve(self, request, *args, **kwargs):
+        """
+        Retrieve a single follow by its id.
+        """
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+    def create(self, request, *args, **kwargs):
+        """
+        Create a new follow.
+        """
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def update(self, request, *args, **kwargs):
+        """
+        Update an existing follow.
+        """
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
+
+    def destroy(self, request, *args, **kwargs):
+        """
+        Unfollow a user.
+        """
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 class NotificationViewSet(viewsets.ModelViewSet):
-    """Viewset for the Notification model."""
+    """
+    A ViewSet for viewing and editing notifications.
+    """
     queryset = Notification.objects.all()
     serializer_class = NotificationSerializers
 
+    def retrieve(self, request, *args, **kwargs):
+        """
+        Retrieve a single notification by its id.
+        """
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+    def create(self, request, *args, **kwargs):
+        """
+        Create a new notification.
+        """
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def update(self, request, *args, **kwargs):
+        """
+        Update an existing notification.
+        """
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
+
+    def destroy(self, request, *args, **kwargs):
+        """
+        Delete a notification.
+        """
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class ActivityLogViewSet(viewsets.ModelViewSet):
-    """Viewset for the ActivityLog model."""
+    """
+    A ViewSet for viewing and editing activity logs.
+    """
     queryset = ActivityLog.objects.all()
     serializer_class = ActivityLogSerializers
 
+    def retrieve(self, request, *args, **kwargs):
+        """
+        Retrieve a single activity log by its id.
+        """
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+    def create(self, request, *args, **kwargs):
+        """
+        Create a new activity log.
+        """
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def update(self, request, *args, **kwargs):
+        """
+        Update an existing activity log.
+        """
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
+
+    def destroy(self, request, *args, **kwargs):
+        """
+        Delete an activity log.
+        """
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 class MessageViewSet(viewsets.ModelViewSet):
-    """Viewset for the Message model."""
+    """
+    A ViewSet for viewing and editing messages.
+    """
     queryset = Message.objects.all()
     serializer_class = MessageSerializers
+
+    def retrieve(self, request, *args, **kwargs):
+        """
+        Retrieve a single message by its id.
+        """
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+    def create(self, request, *args, **kwargs):
+        """
+        Create a new message.
+        """
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def update(self, request, *args, **kwargs):
+        """
+        Update an existing message.
+        """
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
+
+    def destroy(self, request, *args, **kwargs):
+        """
+        Delete a message.
+        """
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
     
     
-
-
-
-
-
-from firebase_admin import credentials, firestore, initialize_app, get_app
-
-# Initialize Firebase Admin SDK and Firestore client once when your application starts
-cred = credentials.Certificate("/Users/elmaliahmac/Documents/json_keys/serviceAccountKey.json")
-
-try:
-    default_app = get_app()
-except ValueError as e:
-    default_app = initialize_app(cred)
-
-db = firestore.client()
-
-
-
 # Viewset for user registration and email verification 
 class RegisterViewSet(viewsets.GenericViewSet):
     serializer_class = RegisterSerializer
@@ -122,7 +423,7 @@ class RegisterViewSet(viewsets.GenericViewSet):
 
             # Use the Firestore client
             try:
-                fire_db(db)
+                fire_fire_db(fire_db)
             except ValueError as e:
                 print(e)
 
@@ -131,3 +432,4 @@ class RegisterViewSet(viewsets.GenericViewSet):
         else:
             # If the data is not valid, return a 400 Bad Request response with the validation errors
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
