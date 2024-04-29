@@ -2,6 +2,7 @@
 from datetime import timedelta
 import os
 from pathlib import Path
+from flask.cli import F
 import sentry_sdk
 
 
@@ -43,15 +44,20 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
     'drf_yasg',
+    'channels',
+
 ]
 
 SWAGGER_SETTINGS = {
     'SECURITY_DEFINITIONS': {
         'basic': {
-            'type': 'basic',
+            'type': 'basic'
         }
+        
+
     },
     'USE_SESSION_AUTH': False,
+    
 }
 
 REST_FRAMEWORK = {
@@ -158,7 +164,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'project.wsgi.application'
-
+ASGI_APPLICATION = 'myproject.routing.application'  # new for channels (websockets and more  )
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
@@ -226,6 +232,14 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://localhost:3002",
     "http://10.0.0.9:3002",
+    "http://localhost:8081",
+       "http://localhost:8082",
+       "http://localhost:8083",
+       "exp://10.0.0.11:8082",
+       "exp://10.0.0.11:8083",
+       "http://192.168.1.123:8083",
+       "http://192.168.1.123:8082",
+
     
         
 
