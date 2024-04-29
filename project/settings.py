@@ -3,7 +3,7 @@ from datetime import timedelta
 import os
 from pathlib import Path
 from flask.cli import F
-import sentry_sdk
+
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -129,7 +129,7 @@ ROOT_URLCONF = 'project.urls'
 
 import sentry_sdk 
 from sentry_sdk.integrations.django import DjangoIntegration
-from sentry_sdk.crons import monitor
+from sentry_sdk.crons.decorator import monitor
 from decouple import config,AutoConfig
 
 
@@ -139,7 +139,7 @@ SENTRY_DSN = config('SENTRY_DSN')
 
 # Initialize the Sentry SDK with the Django integration and the DSN value from the .env file    
 sentry_sdk.init(
-    dsn=SENTRY_DSN,
+    dsn=SENTRY_DSN, # type: ignore
     integrations=[DjangoIntegration()]
     
 )
