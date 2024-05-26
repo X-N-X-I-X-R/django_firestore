@@ -76,8 +76,8 @@ EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp-mail.outlook.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER ="the-farm@outlook.co.il"
-EMAIL_HOST_PASSWORD = "xibxqejgfhiyglrn"
+EMAIL_HOST_USER ="xx"
+EMAIL_HOST_PASSWORD = "xx"
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -242,24 +242,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField' 
 
 CORS_ALLOWED_ORIGINS = [
-    'http://localhost:3001',
-    'http://10.0.0.9:3001',
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",  
-    "http://192.168.0.253:3000",
-    "http://localhost:3000",
-    "http://localhost:3002",
-    
-    "http://10.0.0.9:3002",
-    "http://localhost:8081",
-       "http://localhost:8082",
-       "http://localhost:8083",
-       "exp://10.0.0.11:8082",
-       "exp://10.0.0.11:8083",
-       "http://192.168.1.123:8083",
-       "http://192.168.1.123:8082",
-       'http://localhost:4200',
-         'http://localhost:4201',
+
 
     
         

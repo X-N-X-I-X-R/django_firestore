@@ -29,7 +29,7 @@ def send_activation_email(user, request):
         'token': default_token_generator.make_token(user),
         'refresh_token': refresh_token
     })
-    send_mail(mail_subject, message, 'the-farm@outlook.co.il', [user.email])
+    send_mail(mail_subject, message, '', [user.email])
 
 from rest_framework.decorators import action
 
