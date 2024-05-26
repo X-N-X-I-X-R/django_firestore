@@ -40,7 +40,7 @@ class AutenticacionToken(TokenObtainPairSerializer):
             token['user_permissions'] = ', '.join(perm.codename for perm in permissions)
             print(colored('User permissions: ' + token['user_permissions'], 'green'))
 
-        return token  # Removed the comma here
+        return token  
     
 class AutenticacionTokenView(TokenObtainPairView):
     serializer_class = AutenticacionToken

@@ -10,30 +10,35 @@ from django.core.mail import send_mail
 from django.contrib.sites.shortcuts import get_current_site
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.template.loader import render_to_string
-from django.utils.encoding import force_bytes
 from django.contrib.auth.tokens import default_token_generator
+from django.utils.encoding import force_bytes, force_str  # Update this import
+from myapp.logic.views.Aut_Token import AutenticacionToken
+import logging 
+logger = logging.getLogger(__name__)
+
 
 def send_activation_email(user, request):
-    token = default_token_generator.make_token(user)
-    uid = urlsafe_base64_encode(force_bytes(user.pk))
+    refresh = AutenticacionToken.get_token(user)
+    refresh_token = str(refresh)
     current_site = get_current_site(request)
-    mail_subject = 'Activate your account.'
+    mail_subject = 'Activate your account'
     message = render_to_string('acc_active_email.html', {
         'user': user,
         'domain': current_site.domain,
-        'uid': uid,
-        'token': token,
+        'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+        'token': default_token_generator.make_token(user),
+        'refresh_token': refresh_token
     })
     send_mail(mail_subject, message, 'the-farm@outlook.co.il', [user.email])
+
+from rest_framework.decorators import action
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = RegisterSerializer
 
-    def create(self, request, *args, **kwargs):
-        """
-        Create a new user.
-        """
+    @action(detail=False, methods=['post'])
+    def register(self, request):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             user = User.objects.create_user(
@@ -41,49 +46,49 @@ class UserViewSet(viewsets.ModelViewSet):
                 email=serializer.validated_data['email'],
                 password=serializer.validated_data['password']
             )
-            send_activation_email(user, request)  # Send activation email after user creation
+            send_activation_email(user, request)
             return Response(RegisterSerializer(user).data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            user = User.objects.create_user(
+                username=serializer.validated_data['username'],
+                email=serializer.validated_data['email'],
+                password=serializer.validated_data['password']
+            )
+            send_activation_email(user, request)
+            return Response(RegisterSerializer(user).data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
 
 class ActivateAccount(APIView):
     def get(self, request, uidb64, token):
         try:
-            uid = force_text(urlsafe_base64_decode(uidb64))
+            uid = force_str(urlsafe_base64_decode(uidb64))
             user = User.objects.get(pk=uid)
-            print(f"Found user: {user}")
         except (TypeError, ValueError, OverflowError, User.DoesNotExist):
             user = None
 
-        if user is not None and account_activation_token.check_token(user, token):
+        if user is not None and default_token_generator.check_token(user, token):
             user.is_active = True
             user.save()
-            print("Activated user account")
-            return Response({'message': 'Thank you for your email confirmation. Now you can login your account.'})
+            UserProfile.objects.get_or_create(user=user)
+            return Response({'message': 'Thank you for your email confirmation. Now you can log in to your account.'})
         else:
-            print("Failed to activate user account")
             return Response({'error': 'Activation link is invalid!'}, status=status.HTTP_400_BAD_REQUEST)
-    
-
-    
-
 
 class UserProfileViewSet(viewsets.ViewSet):
-    """
-    A ViewSet for viewing and editing user profiles.
-    """
-
     def list(self, request):
-        """
-        List all user profiles.
-        """
         queryset = UserProfile.objects.all()
         serializer = UserProfileSerializers(queryset, many=True)
         return Response(serializer.data)
 
     def retrieve(self, request, pk=None):
-        """
-        Retrieve a single user profile by its id.
-        """
         try:
             user_profile = UserProfile.objects.get(pk=pk)
             serializer = UserProfileSerializers(user_profile)
@@ -92,9 +97,6 @@ class UserProfileViewSet(viewsets.ViewSet):
             return Response(status=status.HTTP_404_NOT_FOUND)
 
     def create(self, request):
-        """
-        Create a new user profile.
-        """
         serializer = UserProfileSerializers(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -102,9 +104,6 @@ class UserProfileViewSet(viewsets.ViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def update(self, request, pk=None):
-        """
-        Update an existing user profile.
-        """
         try:
             user_profile = UserProfile.objects.get(pk=pk)
             serializer = UserProfileSerializer(user_profile, data=request.data)
@@ -116,9 +115,6 @@ class UserProfileViewSet(viewsets.ViewSet):
             return Response(status=status.HTTP_404_NOT_FOUND)
 
     def destroy(self, request, *args, **kwargs):
-        """
-        Deactivate the user account.
-        """
         try:
             user_profile = UserProfile.objects.get(pk=kwargs['pk'])
             user_profile.active = False
@@ -127,12 +123,12 @@ class UserProfileViewSet(viewsets.ViewSet):
         except UserProfile.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
+##########################
+    
 class PostViewSet(viewsets.ModelViewSet):
     """
     A ViewSet for viewing and editing posts.
     """
-
-
     queryset = Post.objects.all()
     serializer_class = PostSerializer
     def retrieve(self, request, *args, **kwargs):

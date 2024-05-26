@@ -3,33 +3,39 @@
 import re
 from myapp.imports.model_imports import *
 from .models_Validations import *
+from django.db import models
+from .models_Validations import default_date
 
     
 
+
+
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, help_text="Select the user.")
-    user_nickname = models.CharField(max_length=25, validators=[MinLengthValidator(1), MaxLengthValidator(25)], 
-                                     help_text="The nickname must be between 1 and 25 characters long.", 
-                                     blank=False, null=False, unique=True, 
-                                     error_messages={'unique': 'A user with this nickname already exists.'}) 
-    user_gender = models.CharField(max_length=1, choices=[('M', 'Male'), ('F', 'Female'), ('O', 'Other')], default='O', help_text="Select your gender.")   
-    user_country = models.CharField(max_length=3 , choices=[(code, code) for code in validate_country()], default='USA', help_text="Select your country.")
-    user_phone = models.CharField(max_length=25, unique=True, validators=[RegexValidator(regex=r'^\+?1?\d{9,15}$', message="Phone number must be entered in the format: '+999999999'. Up to 15 digits allowed.")], help_text="Enter your phone number.", error_messages={'unique': 'A user with this phone number already exists.'}) 
-    user_birth_date = models.DateField(validators=[validate_birth_date], help_text="Enter your birth date in the format: YYYY-MM-DD", default=default_date, blank=False, null=False) 
-    user_register_date = models.DateTimeField(auto_now_add=True, help_text="The date when the user registered.") 
-    last_login = models.DateTimeField(auto_now=True, help_text="The last login date.") 
-    user_bio = models.TextField(validators=[MinLengthValidator(1), MaxLengthValidator(500)], help_text="The bio must be between 1 and 500 characters long.", default="No bio", blank=False, null=False) 
-    user_website = models.URLField(max_length=200, blank=True, null=True, default="No website added", help_text="Enter your website URL.") 
-    user_image_container = models.ImageField(blank=True, null=True, validators=[validate_image_file_size], help_text="Upload your image.") 
+    user_nickname = models.CharField(max_length=25, validators=[MinLengthValidator(1), MaxLengthValidator(25)],
+                                     help_text="The nickname must be between 1 and 25 characters long.",
+                                     blank=False, null=False, unique=True,
+                                     error_messages={'unique': 'A user with this nickname already exists.'})
+    user_gender = models.CharField(max_length=1, choices=[('M', 'Male'), ('F', 'Female'), ('O', 'Other')], default='', help_text="Select your gender.")
+    user_country = models.CharField(max_length=3, choices=[(code, code) for code in validate_country()], default='', help_text="Select your country.")
+    user_phone = models.CharField(max_length=25, unique=True, validators=[RegexValidator(regex=r'^\+?1?\d{9,15}$', message="Phone number must be entered in the format: '+999999999'. Up to 15 digits allowed.")], help_text="Enter your phone number.", error_messages={'unique': 'A user with this phone number already exists.'})
+    user_birth_date = models.DateField(validators=[validate_birth_date], help_text="Enter your birth date in the format: YYYY-MM-DD", default=default_date, blank=False, null=False)
+    user_register_date = models.DateTimeField(auto_now_add=True, help_text="The date when the user registered.")
+    last_login = models.DateTimeField(auto_now=True, help_text="The last login date.")
+    user_bio = models.TextField(validators=[MinLengthValidator(1), MaxLengthValidator(500)], help_text="The bio must be between 1 and 500 characters long.", default="No bio", blank=False, null=False)
+    user_website = models.URLField(max_length=200, blank=True, null=True, default="No website added", help_text="Enter your website URL.")
+    user_image_container = models.ImageField(blank=True, null=True, validators=[validate_image_file_size], help_text="Upload your image.")
     user_profile_image = models.ImageField(default=default_image, blank=True, null=True, help_text="Upload your profile image.")
     active = models.BooleanField(default=True)
-     
 
     def __str__(self):
         return self.user_nickname
 
     def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)  # Call the "real" save() method.
+        if not self.user_nickname:
+            self.user_nickname = self.user.username
+        super().save(*args, **kwargs)
+
 
  
         

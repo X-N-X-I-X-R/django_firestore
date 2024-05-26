@@ -4,12 +4,8 @@ import os
 from pathlib import Path
 from decouple import config
 
-
-
-
-
-
-
+import logging
+logging.basicConfig(level=logging.DEBUG)
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.

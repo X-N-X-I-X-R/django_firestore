@@ -9,7 +9,7 @@ class MyAppConfig(AppConfig):
     name= 'myapp.configurations' 
 
     def ready(self):
-        import myapp.logic.signals
+        import myapp.logic.signals  
         
         # explanation about this file : 
         '''
