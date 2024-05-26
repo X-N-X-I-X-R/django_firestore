@@ -1,14 +1,69 @@
 from myapp.imports.views_imports import *
 from myapp.logic.convert_complex_data.serializers import *
+from rest_framework.views import APIView
+from rest_framework import viewsets
+from rest_framework import status
+from rest_framework.response import Response
+from django.contrib.auth.models import User
+from myapp.logic.convert_complex_data.serializers import RegisterSerializer
+from django.core.mail import send_mail
+from django.contrib.sites.shortcuts import get_current_site
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.template.loader import render_to_string
+from django.utils.encoding import force_bytes
+from django.contrib.auth.tokens import default_token_generator
 
-
-
-
+def send_activation_email(user, request):
+    token = default_token_generator.make_token(user)
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
+    current_site = get_current_site(request)
+    mail_subject = 'Activate your account.'
+    message = render_to_string('acc_active_email.html', {
+        'user': user,
+        'domain': current_site.domain,
+        'uid': uid,
+        'token': token,
+    })
+    send_mail(mail_subject, message, 'the-farm@outlook.co.il', [user.email])
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
-    serializer_class = AutUser
+    serializer_class = RegisterSerializer
+
+    def create(self, request, *args, **kwargs):
+        """
+        Create a new user.
+        """
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            user = User.objects.create_user(
+                username=serializer.validated_data['username'],
+                email=serializer.validated_data['email'],
+                password=serializer.validated_data['password']
+            )
+            send_activation_email(user, request)  # Send activation email after user creation
+            return Response(RegisterSerializer(user).data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class ActivateAccount(APIView):
+    def get(self, request, uidb64, token):
+        try:
+            uid = force_text(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(pk=uid)
+            print(f"Found user: {user}")
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            user = None
+
+        if user is not None and account_activation_token.check_token(user, token):
+            user.is_active = True
+            user.save()
+            print("Activated user account")
+            return Response({'message': 'Thank you for your email confirmation. Now you can login your account.'})
+        else:
+            print("Failed to activate user account")
+            return Response({'error': 'Activation link is invalid!'}, status=status.HTTP_400_BAD_REQUEST)
     
+
     
 
 
@@ -66,7 +121,7 @@ class UserProfileViewSet(viewsets.ViewSet):
         """
         try:
             user_profile = UserProfile.objects.get(pk=kwargs['pk'])
-            user_profile.active = True
+            user_profile.active = False
             user_profile.save()
             return Response({"message": "The profile has been removed."}, status=status.HTTP_200_OK)
         except UserProfile.DoesNotExist:
@@ -386,50 +441,3 @@ class MessageViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
     
     
-# Viewset for user registration and email verification 
-class RegisterViewSet(viewsets.GenericViewSet):
-    serializer_class = RegisterSerializer
-
-    def create(self, request):
-        serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-            # Create a new User instance
-            user = User.objects.create_user(
-                username=serializer.validated_data['username'],
-                email=serializer.validated_data['email'],
-                password=serializer.validated_data['password'],
-                is_active=False  # User is not active until email is validated
-            )
-            # Save the User instance
-            user.save()
-
-            # Generate a token for the user
-            refresh = RefreshToken.for_user(user)
-            access_token = str(refresh)
-
-            # Generate a validation link
-            current_site = get_current_site(request).domain
-            relative_link = reverse('email-verify')
-            abs_url = 'http://'+current_site+relative_link+"?token="+access_token
-
-            # Send a validation email
-            send_mail(
-                'Verify your email',
-                'Hi '+user.username+', use the link below to verify your email \n' + abs_url,
-                'noreply@mywebsite.com',
-                [user.email],
-                fail_silently=False,
-            )
-
-            # Use the Firestore client
-            try:
-                fire_fire_db(fire_db)
-            except ValueError as e:
-                print(e)
-
-            # Return a successful response with the created User instance
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            # If the data is not valid, return a 400 Bad Request response with the validation errors
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        

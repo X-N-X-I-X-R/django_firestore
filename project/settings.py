@@ -2,7 +2,13 @@
 from datetime import timedelta
 import os
 from pathlib import Path
-from flask.cli import F
+from decouple import config
+
+
+
+
+
+
 
 
 
@@ -45,7 +51,9 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'drf_yasg',
     'channels',
-
+    'sentry_sdk',
+    'sentry_sdk.integrations.django',
+    'db_email_backend',  
 ]
 
 SWAGGER_SETTINGS = {
@@ -54,11 +62,26 @@ SWAGGER_SETTINGS = {
             'type': 'basic'
         }
         
+        
 
     },
     'USE_SESSION_AUTH': False,
     
 }
+
+# settings.py
+
+
+
+
+
+
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp-mail.outlook.com"
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER ="the-farm@outlook.co.il"
+EMAIL_HOST_PASSWORD = "xibxqejgfhiyglrn"
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -113,9 +136,8 @@ SIMPLE_JWT = {
 }
 
 
-MIDDLEWARE = [ 
+MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',  # This should be first
-
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -231,6 +253,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://192.168.0.253:3000",
     "http://localhost:3000",
     "http://localhost:3002",
+    
     "http://10.0.0.9:3002",
     "http://localhost:8081",
        "http://localhost:8082",
@@ -239,10 +262,11 @@ CORS_ALLOWED_ORIGINS = [
        "exp://10.0.0.11:8083",
        "http://192.168.1.123:8083",
        "http://192.168.1.123:8082",
+       'http://localhost:4200',
+         'http://localhost:4201',
 
     
         
 
 
 ]
-

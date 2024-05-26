@@ -1,13 +1,11 @@
 from rest_framework import routers
-from django.urls import path, include
+from django.urls import path, include, re_path
 from rest_framework_simplejwt.views import TokenRefreshView
-
-
-from myapp.logic.views.users_viewset import CommentViewSet, LikeViewSet, PostViewSet, UserProfileViewSet, FollowViewSet, NotificationViewSet, ActivityLogViewSet, MessageViewSet, UserViewSet, RegisterViewSet
 from ..logic.views.Aut_Token import AutenticacionTokenView, LogoutView  
 from django.conf import settings
 from django.conf.urls.static import static
-
+from myapp.logic.views.users_viewset  import UserViewSet, UserProfileViewSet, PostViewSet, CommentViewSet, LikeViewSet, FollowViewSet, NotificationViewSet, ActivityLogViewSet, MessageViewSet,ActivateAccount
+from django.contrib.auth import views as auth_views
 
 
 
@@ -26,18 +24,27 @@ router.register(r'activitylogs', ActivityLogViewSet, basename='activitylogs')
 router.register(r'messages', MessageViewSet, basename='messages')
 router.register(r'users', UserViewSet, basename='users')  
 router.register(r'search', UserProfileViewSet, basename='search') 
-router.register(r'register_user', RegisterViewSet, basename='create_user')
+
 
 
 urlpatterns = [
     path('login', AutenticacionTokenView.as_view(), name='token_obtain_pair'),
+    path('api/register_user/', UserViewSet.as_view({'post': 'create'}), name='create_user'),
     path('login/refresh', TokenRefreshView.as_view(), name='token_refresh'),
     path('logout', LogoutView.as_view(), name='logout'),
     path('api/', include(router.urls)),
     path('api/posts/', include(posts_router.urls)), 
+    
+    path('password_reset/', auth_views.PasswordResetView.as_view(), name='password_reset'),
+    path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
+    path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
+    path('reset/done/', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
 
+    # URL for account activation
+    path('activate/<uidb64>/<token>/', ActivateAccount.as_view(), name='activate'),
 
 ]
+
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

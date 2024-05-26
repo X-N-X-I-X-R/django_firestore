@@ -8,12 +8,13 @@ class AutUser(serializers.ModelSerializer):
   class Meta:
     model = User
     fields = '__all__'
-    
-class UserProfileSerializers(serializers.ModelSerializer):
-  class Meta:
-    model = UserProfile
-    fields = '__all__'
 
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = ['user_nickname', 'user_gender', 'user_country', 'user_phone', 'user_birth_date', 'user_bio', 'user_website', 'user_image_container', 'user_profile_image']
+        
+        
 class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
