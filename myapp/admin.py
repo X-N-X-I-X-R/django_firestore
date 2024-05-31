@@ -2,7 +2,7 @@ from django.contrib import admin
 
 # Register your models here.
 
-from myapp.models.models import ActivityLog, Comment, Follow, Like, Message, Notification, Post, UserProfile
+from myapp.models.models import ActivityLog, Comment, Follow, Like, Message, Notification, Post, UserProfile, User, ActivateAccount_Email
 
 
 
@@ -16,6 +16,8 @@ admin.site.register(Message)
 admin.site.register(Notification)
 admin.site.register(Post)
 admin.site.register(UserProfile)
+admin.site.register(ActivateAccount_Email)
+
 
 
 

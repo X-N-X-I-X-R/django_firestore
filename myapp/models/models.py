@@ -1,13 +1,60 @@
 
 
 import re
+
+import jwt
+from yaml import serialize
 from myapp.imports.model_imports import *
 from .models_Validations import *
 from django.db import models
 from .models_Validations import default_date
+import logging
+
+
+logger = logging.getLogger(__name__)
+
 
     
+from datetime import datetime, timedelta, timezone
+    
 
+
+# serilizer for ActivateAccount_Email
+
+    
+class ActivateAccount_Email(models.Model):
+    
+    activation_id = models.AutoField(primary_key=True, help_text="The ID of the activation email.")
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    activation_key = models.CharField(max_length=40, help_text="The activation key for the account.")
+    activation_date = models.DateTimeField(auto_now_add=True, help_text="The date when the activation email was sent.")
+    is_active = models.BooleanField(default=False, help_text="Check this if the account has been activated.")
+    
+    def generate_activation_key(self):
+        payload = {
+            'exp': datetime.now(timezone.utc) + timedelta(days=2, seconds=3600),
+            'iat': datetime.now(timezone.utc),
+            'sub': self.user.id # type: ignore
+        }
+        self.activation_key = jwt.encode(
+            payload,
+            'SECRET_KEY', # Replace with your SECRET_KEY
+            algorithm='HS256'
+        )
+        self.save()
+        
+
+    def activate_account(self):
+        self.is_active = True
+        logging.info(f"Account activated for {self.user.username}")
+        return self.is_active
+    
+    def get_activation_key(self):
+        logging.info(f"Activation key retrieved for user {self.user.username}")
+        return self.activation_key  
+    
+    def __str__(self):
+        return f"{self.user.username}'s Activation Email"
 
 
 class UserProfile(models.Model):
