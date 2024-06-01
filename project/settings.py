@@ -20,7 +20,7 @@ logging.basicConfig(level=logging.DEBUG)
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-from decouple import config
+
 
 
 SECRET_KEY = config('DJANGO_SERVER')
@@ -87,11 +87,11 @@ SWAGGER_SETTINGS = {
 
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "smtp-mail.outlook.com"
+EMAIL_HOST = config("EMAIL_HOST")
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER ="the-farm@outlook.co.il"
-EMAIL_HOST_PASSWORD = "xibxqejgfhiyglrn"
+EMAIL_HOST_USER =config("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -281,10 +281,36 @@ CORS_ALLOWED_ORIGINS = [
         
 
 
-]
-# Import necessary module
+]# Import necessary module
 from termcolor import colored
 import os
+
+from colorlog import ColoredFormatter
+
+class StatusCodeFormatter(ColoredFormatter):
+    def format(self, record):
+        # קריאה לשיטת הפורמט של המחלקה האב
+        log_msg = super().format(record)
+
+        # בדיקה אם קוד הסטטוס נמצא בהודעת הלוג
+        if 'status_code' in record.__dict__:
+            status_code = record.status_code  # type: ignore
+
+            # צביעת קוד הסטטוס בהתאם לערכו
+            if status_code in range(199, 301):
+                # מוצלח - ירוק עם רקע לבן
+                log_msg = log_msg.replace(str(status_code), "\033[32;47m{}\033[0m".format(status_code))
+            elif status_code in range(300, 401):
+                # פחות מוצלח - צהוב עם רקע לבן
+                log_msg = log_msg.replace(str(status_code), "\033[33;47m{}\033[0m".format(status_code))
+            elif status_code in range(400, 501):
+                # לא ממש מצליח - כחול עם רקע לבן
+                log_msg = log_msg.replace(str(status_code), "\033[34;47m{}\033[0m".format(status_code))
+            elif status_code in range(500, 601):
+                # לא מצליח - אדום עם רקע לבן
+                log_msg = log_msg.replace(str(status_code), "\033[31;47m{}\033[0m".format(status_code))
+
+        return log_msg
 
 # Define the logging configuration
 LOGGING = {
@@ -305,13 +331,13 @@ LOGGING = {
     
     'formatters': {
         'colored': {
-            '()': 'colorlog.ColoredFormatter',
-            'format': "%(log_color)s%(levelname)-8s%(reset)s %(bg_white)s%(asctime)s%(reset)s %(yellow)s%(message)s from %(module)s, line %(lineno)d in %(funcName)s",
+            '()':  StatusCodeFormatter,  # Use the custom StatusCodeFormatter
+            'format': "%(log_color)s%(levelname)-8s%(reset)s %(blue)s%(asctime)s%(reset)s %(log_color)s%(message)s%(reset)s %(cyan)sfrom %(module)s, line %(lineno)d in %(funcName)s%(reset)s",
             'datefmt': "%Y-%m-%d %H:%M:%S",
             'log_colors': {
                 'DEBUG': 'blue',
                 'INFO': 'green',
-                'WARNING': 'yellow',
+                'WARNING': 'red.bg_yellow',
                 'ERROR': 'red',
                 'CRITICAL': 'red,bg_white',
             },
@@ -325,74 +351,12 @@ LOGGING = {
         'django': {
             'handlers': ['console', 'file'],
             'level': 'INFO',
-            'propagate': True,
+            'propagate': False,
         },
         'myapp': {
             'handlers': ['console', 'file'],
             'level': 'INFO',
-            'propagate': True,
+            'propagate': False,
         },  
     },
-    }
-    
-
-# Define function to delete all but the last 30 lines of a file
-# 
-def delete_context_from_Debug_file_except_last_30_lines(log_file_path):
-    with open(log_file_path, 'r+') as file:
-        lines = file.readlines()
-        file.seek(0)
-        file.truncate()
-        file.writelines(lines[-50:])
-        return file
-
-# Define function to delete lines from a file if it has more than 1000 lines
-def delett(file_path):
-    if not os.path.isfile(file_path):
-        print(colored("File does not exist", 'red'))
-        return
-
-    with open(file_path, 'r') as file:
-        lines = file.readlines()
-
-    for _ in range(1000):
-        if len(lines) > 100:
-            delete_context_from_Debug_file_except_last_30_lines(file_path)
-            print(colored("Logger updated the file and kept only the last 30 lines", 'green'))
-        else:
-            print(colored("Not Deleted", 'red'))
-            break
-
-# Call the function with the path to the log file
-delett(BASE_DIR / 'debug.log')
-
-
-
-# Import necessary modules
-import pandas as pd
-
-# Define function to read log file and display it in table style
-def display_log_in_table_style(log_file_path):
-    # Define the column names
-    column_names = ['Date', 'Time', 'Level', 'Module', 'Message']
-
-    # Read the log file
-    with open(log_file_path, 'r') as file:
-        lines = file.readlines()
-
-    # Split each line into its components and add it to a list
-    log_data = []
-    for line in lines:
-        components = line.split()
-        if len(components) >= 5:
-            log_data.append(components[:5])
-
-    # Create a DataFrame from the log data
-    df = pd.DataFrame(log_data, columns=column_names)
-    save_data = df.to_html("log.html")
-
-    # Display the DataFrame
-    print(f"the data is saved in {save_data}")
-
-# Call the function with the path to the log file
-display_log_in_table_style(BASE_DIR / 'debug.log')
+}

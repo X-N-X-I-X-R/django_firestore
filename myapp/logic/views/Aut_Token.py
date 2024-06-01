@@ -19,10 +19,10 @@ from django.contrib.auth import authenticate, login
 from termcolor import colored
 import json
 import logging
-
+import os
 from myapp.models.models import User, ActivateAccount_Email, UserProfile, Post, Comment, Like, Follow, Notification, ActivityLog, Message
 from ..convert_complex_data.serializers import RegisterSerializer, UserProfileSerializer, PostSerializer, CommentSerializers, LikeSerializers, FollowSerializers, NotificationSerializers, ActivityLogSerializers, MessageSerializers
-
+from decouple import config
 
 
 logger = logging.getLogger(__name__)
@@ -43,10 +43,14 @@ def send_activation_email(user, request):
     
     logger.debug("Attempting to send email to %s", user.email)
     try:
+        email_host_user = config('EMAIL_HOST_USER')
+        if not isinstance(email_host_user, str):
+            raise ValueError("EMAIL_HOST_USER must be a string.")
+        
         email = EmailMessage(
             mail_subject,
             message,
-            'the-farm@outlook.co.il',
+            email_host_user,
             [user.email],
         )
         email.content_subtype = "html"  # this is the crucial line
@@ -54,6 +58,7 @@ def send_activation_email(user, request):
         logger.debug("Email sent to %s", user.email)
     except Exception as e:
         logger.error("Error sending email: %s", e)
+
 
 class AutenticacionToken(TokenObtainPairSerializer):
     @classmethod
@@ -121,9 +126,8 @@ class UserViewSet(viewsets.ModelViewSet):
                 password=serializer.validated_data['password'],
                 is_active=False  # Set the user as inactive until email verification
             )
-            # ensure user profile is created before sending activation email
-            user_profile = UserProfile.objects.create(user=user)
-            user_profile.save()
+        
+          
             send_activation_email(user, request)
             return Response(RegisterSerializer(user).data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -147,20 +151,24 @@ class ActivateAccount(APIView):
         if user is not None and default_token_generator.check_token(user, token):
             user.is_active = True
             user.save()
+            activation_email = ActivateAccount_Email.objects.get(user=user)
+            activation_email.activate_account()
+            activation_email.save()
             return redirect('http://localhost:4200/home/')
         else:
             return redirect('http://localhost:4200/market-data')
 
+
 class UserProfileViewSet(viewsets.ViewSet):
     def list(self, request):
         queryset = UserProfile.objects.all()
-        serializer = UserProfileSerializers(queryset, many=True)
+        serializer = UserProfileSerializer(queryset, many=True)
         return Response(serializer.data)
 
     def retrieve(self, request, pk=None):
         try:
             user_profile = UserProfile.objects.get(pk=pk)
-            serializer = UserProfileSerializers(user_profile)
+            serializer = UserProfileSerializer(user_profile)
             return Response(serializer.data)
         except UserProfile.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)

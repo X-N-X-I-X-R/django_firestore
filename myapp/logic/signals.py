@@ -15,7 +15,7 @@ def create_activation_email(sender, instance, created, **kwargs):
 
 @receiver(post_save, sender=ActivateAccount_Email)
 def create_user_profile(sender, instance, **kwargs):
-    if instance.is_active:
+    if instance.is_active==True:
         UserProfile.objects.create(user=instance.user)
         logger.info(f'UserProfile created for user: {instance.user}')
 
@@ -26,6 +26,7 @@ def save_user_profile(sender, instance, **kwargs):
         logger.info(f'UserProfile saved for user: {instance}')
     except UserProfile.DoesNotExist:
         pass
+    
 
 @receiver(post_save, sender=Post)
 @receiver(post_save, sender=Comment)
