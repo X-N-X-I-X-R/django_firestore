@@ -1,6 +1,7 @@
 from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
-from myapp.models.models import ActivateAccount_Email, UserProfile, Post, Comment, Like, Follow, Notification, ActivityLog, Message
+from myapp.models.models import ActivateAccount_Email, Post, Comment, Like, Follow, Notification, ActivityLog, Message
+
 from django.contrib.auth.models import User
 import logging
 
@@ -12,10 +13,12 @@ def create_activation_email(sender, instance, created, **kwargs):
         ActivateAccount_Email.objects.create(user=instance)
         
         logger.info(f'ActivateAccount_Email created for user: {instance}')
+        
 
 @receiver(post_save, sender=ActivateAccount_Email)
 def create_user_profile(sender, instance, **kwargs):
-    if instance.is_active==True:
+    if instance.is_active==True and instance.user.userprofile==None: 
+        
         UserProfile.objects.create(user=instance.user)
         logger.info(f'UserProfile created for user: {instance.user}')
 
@@ -59,3 +62,6 @@ def messege():
     pass
 
 messege()
+
+
+

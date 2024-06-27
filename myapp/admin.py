@@ -2,8 +2,10 @@ from django.contrib import admin
 
 # Register your models here.
 
-from myapp.models.models import ActivityLog, Comment, Follow, Like, Message, Notification, Post, UserProfile, User, ActivateAccount_Email
+from myapp.models.models import ActivityLog, Comment, Follow, Like, Message, Notification, Post, ActivateAccount_Email
+from django.contrib.auth.models import User
 
+from myapp.models.UserprofileFolder.userprofile_model import UserProfile
 
 
 

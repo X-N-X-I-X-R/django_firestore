@@ -1,6 +1,8 @@
-from ..imports.urls_imports import * 
+from myapp.logic.views.jitsimeet import MeetingViewSet
+from ..imports.urls_imports import *
 from rest_framework import routers
 
+admin_router = routers.DefaultRouter()
 
 # Create a new router for the posts URLs
 posts_router = routers.DefaultRouter()
@@ -10,20 +12,23 @@ posts_router.register(r'comments', CommentViewSet)
 # Register the other viewsets with the main router
 router = routers.DefaultRouter()
 router.register(r'profiles', UserProfileViewSet, basename='profiles')
+router.register(r'userprofile', UserProfileViewSet, basename='userprofile')
+
 router.register(r'posts', PostViewSet, basename='user-post')
 router.register(r'follows', FollowViewSet, basename='user-follow')
 router.register(r'notifications', NotificationViewSet, basename='notifications')
 router.register(r'activitylogs', ActivityLogViewSet, basename='activitylogs')
 router.register(r'messages', MessageViewSet, basename='messages')
+router.register(r'meetings', MeetingViewSet)
+
 
 urlpatterns = [
+    path('api/', include(router.urls)),
     path('login/', AutenticacionTokenView.as_view(), name='login'),
-    path('api/register_user/', UserViewSet.as_view({'post': 'register', 'put': 'create'}), name='create_user'),  
+    path('api/register_user/', UserViewSet.as_view({'post': 'register', 'put': 'create'}), name='create_user'),
     path('login/refresh', TokenRefreshView.as_view(), name='token_refresh'),
     path('logout', LogoutView.as_view(), name='logout'),
-    path('api/', include(router.urls)),
-    path('api/posts/', include(posts_router.urls)), 
-    
+    path('api/posts/', include(posts_router.urls)),
     path('password_reset/', auth_views.PasswordResetView.as_view(), name='password_reset'),
     path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
     path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
@@ -33,20 +38,6 @@ urlpatterns = [
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

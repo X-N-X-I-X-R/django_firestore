@@ -14,7 +14,7 @@
 
 
 # phonty targets are not files but commands that are not associated with files in the file system 
-.PHONY: runserver makemigrations migrate createsuperuser freeze install requirements virtualenv env python-decouple dec.env source env/bin/activate runenv deactivate killenv gitremove rm-rf gitdelete djangomongo djangofirebase django-mongodb-engine
+.PHONY: runserver makemigrations migrate createsuperuser freeze install requirements virtualenv env python-decouple dec.env runenv deactivate killenv gitremove rm-rf gitdelete djangomongo djangofirebase django-mongodb-engine
 
 
 
@@ -52,12 +52,12 @@ decouple:
 	pip install python-decouple
 
 envr:
-		# Activate the virtual environment	
+	# run the virtual environment
 	source env/bin/activate
 
 envk:
-    # Deactivate the virtual environment
-	@echo "To deactivate the virtual environment, run 'deactivate' in your shell."
+  # Deactivate the virtual environment
+	deactivate
 
 gitremove:
 	# Remove the .git folder and all its contents from the current directory and all subdirectories recursively 
@@ -66,6 +66,7 @@ gitremove:
 remove.git: 
 	# Remove the .git folder and all its contents from the current directory and all subdirectories recursively 
 	rm -rf .git
+
 
 
 	
