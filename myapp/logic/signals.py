@@ -1,11 +1,28 @@
 from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
+from myapp.models.UserprofileFolder.userprofile_model import UserProfile
 from myapp.models.models import ActivateAccount_Email, Post, Comment, Like, Follow, Notification, ActivityLog, Message
 
 from django.contrib.auth.models import User
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+@receiver(post_save, sender=User)
+def create_activation_email_and_user_profile(sender, instance, created, **kwargs):
+    if created:
+        ActivateAccount_Email.objects.create(user=instance)
+        UserProfile.objects.create(user=instance)  # Create UserProfile when the user is created
+        logger.info(f'ActivateAccount_Email and UserProfile created for user: {instance}')
+    else:
+        # This ensures the UserProfile is saved/updated whenever the User instance is saved and not newly created.
+        try:
+            instance.userprofile.save()
+            logger.info(f'UserProfile saved for user: {instance}')
+        except UserProfile.DoesNotExist:
+            UserProfile.objects.create(user=instance)  # Create UserProfile if it doesn't exist
+            logger.info(f'UserProfile created for user: {instance}')
 
 @receiver(post_save, sender=User)
 def create_activation_email(sender, instance, created, **kwargs):

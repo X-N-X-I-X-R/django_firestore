@@ -76,7 +76,10 @@ EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    )
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
 }
 
 
@@ -346,6 +349,7 @@ LOGGING = {
     },
     'loggers': {
         'django': {
+            
             'handlers': ['console', 'file'],
             'level': 'INFO',
             'propagate': False,

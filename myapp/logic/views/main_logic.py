@@ -18,9 +18,17 @@ from django.shortcuts import redirect
 from django.contrib.auth import authenticate, login
 from termcolor import colored
 import logging
-from myapp.models.models import User, ActivateAccount_Email, UserProfile, Post, Comment, Like, Follow, Notification, ActivityLog, Message
-from myapp.logic.convert_complex_data.serializers import ActivityLogSerializer, CommentSerializer, FollowSerializer, LikeSerializer, MessageSerializer, NotificationSerializer, UserProfileSerializer, RegisterSerializer, PostSerializer
+from myapp.models.UserprofileFolder.userprofile_model import Images, UserProfile
+from myapp.models.models import User, Post, Comment, Like, Follow, Notification, ActivityLog, Message, ActivateAccount_Email
+from myapp.logic.convert_complex_data.serializers import ActivityLogSerializer, CommentSerializer, FollowSerializer, ImagesSerializer, LikeSerializer, MessageSerializer, NotificationSerializer, UserProfileSerializer, RegisterSerializer, PostSerializer
 from decouple import config
+from rest_framework.permissions import IsAuthenticated
+
+
+
+
+
+
 
 logger = logging.getLogger(__name__)
 
@@ -56,6 +64,8 @@ def send_activation_email(user, request):
     except Exception as e:
         logger.error("Error sending email: %s", e)
 
+
+# Custom token serializer to include additional user data
 class AutenticacionToken(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):
@@ -106,6 +116,8 @@ class LogoutView(APIView):
 
         print(colored('Token blacklisted successfully', 'green'))
         return Response(status=status.HTTP_205_RESET_CONTENT)
+    
+    
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -159,7 +171,6 @@ class ActivateAccount(APIView):
 
 from rest_framework import viewsets, status
 from rest_framework.response import Response
-from myapp.models.models import UserProfile
 from myapp.logic.convert_complex_data.serializers import UserProfileSerializer
 
 class UserProfileViewSet(viewsets.ModelViewSet):
@@ -213,6 +224,16 @@ class UserProfileViewSet(viewsets.ModelViewSet):
 
 
 
+class ImagesViewSet(viewsets.ModelViewSet):
+    queryset = Images.objects.all()
+    serializer_class = ImagesSerializer
+    permission_classes = [IsAuthenticated]
+        
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user.userprofile) # type: ignore
+
+    
+    
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer

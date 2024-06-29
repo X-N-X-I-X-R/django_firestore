@@ -5,7 +5,10 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
 
-from myapp.logic.views.main_logic import LikeViewSet, CommentViewSet, AutenticacionTokenView, LogoutView, ActivateAccount, UserViewSet, UserProfileViewSet, PostViewSet, FollowViewSet, NotificationViewSet, ActivityLogViewSet, MessageViewSet
+
+from myapp.logic.views.main_logic import UserViewSet, UserProfileViewSet, PostViewSet, CommentViewSet, LikeViewSet, FollowViewSet, NotificationViewSet, ActivityLogViewSet, MessageViewSet,ActivateAccount
+from myapp.logic.views.main_logic import AutenticacionTokenView, LogoutView
+
 
 
 imports =[ 

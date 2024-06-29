@@ -22,7 +22,7 @@
 
 import django
 from django.contrib.auth.models import User
-from myapp.models.models import UserProfile
+
 import pandas as pd 
 
 
