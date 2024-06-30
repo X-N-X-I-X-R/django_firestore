@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django_countries.fields import Country
-from myapp.models.UserprofileFolder.userprofile_model import Images
+from myapp.models.UserprofileFolder.userprofile_model import Album, Images
 from myapp.models.models import UserProfile, Post, Comment, Like, Follow, Notification, ActivityLog, Message
 from django.contrib.auth.models import User
 
@@ -10,34 +10,44 @@ from django.contrib.auth.models import User
 # serializers.py
 
 
-
+class AlbumSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Album
+        fields = ['id', 'name', 'created_at']
 
 class ImagesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Images
         fields = ['id', 'user_image_container', 'user_profile_image', 'image_subject']
         
+from rest_framework import serializers
+from django_countries.fields import Country
+from myapp.models.UserprofileFolder.userprofile_model import Album, Images
+from myapp.models.models import UserProfile, Post, Comment, Like, Follow, Notification, ActivityLog, Message
+from django.contrib.auth.models import User
+
+# serializers.py
+
 class UserProfileSerializer(serializers.ModelSerializer):
-    images = ImagesSerializer(many=True, read_only=True)
+    user_country = serializers.CharField(source='user_country.code', allow_blank=True, allow_null=True)
 
     class Meta:
         model = UserProfile
         fields = [
             'user_nickname', 'user_gender', 'user_country',
             'user_birth_date', 'user_bio', 'user_website', 'active',
-            'user_register_date', 'last_login', 'last_updated', 'id', 'images'
+            'user_register_date', 'last_login', 'last_updated', 'id',
         ]
 
     def update(self, instance, validated_data):
-        images_data = validated_data.pop('images', None)
-        if images_data:
-            for image_data in images_data:
-                Images.objects.create(user=instance, **image_data)
-
+        country_data = validated_data.pop('user_country', None)
+        if country_data:
+            instance.user_country = Country(code=country_data['code'])
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
         return instance
+
 
 class PostSerializer(serializers.ModelSerializer):
     class Meta:

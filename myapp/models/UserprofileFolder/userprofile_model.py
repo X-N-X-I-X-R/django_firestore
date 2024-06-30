@@ -73,14 +73,23 @@ class UserProfile(models.Model):
         self.validate_bio()
 
     def __str__(self):
-        return self.user.username# type: ignore 
+        return self.user.username  # type: ignore 
 
+class Album(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='albums')
+    name = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return self.name
 
 class Images(models.Model):
     user = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='images')
+    album = models.ForeignKey(Album, on_delete=models.CASCADE, related_name='images', null=True, blank=True)
     user_image_container = models.ImageField(default=default_image, blank=True, null=True, upload_to=user_directory_path, validators=[validate_image_file_size])
     user_profile_image = models.ImageField(default=default_image, blank=True, null=True, upload_to=user_directory_path, validators=[validate_image_file_size])
     image_subject = models.CharField(max_length=255, blank=True, null=True)
+    is_profile_picture = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
         self.clean()

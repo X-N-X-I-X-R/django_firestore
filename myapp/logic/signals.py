@@ -32,12 +32,18 @@ def create_activation_email(sender, instance, created, **kwargs):
         logger.info(f'ActivateAccount_Email created for user: {instance}')
         
 
-@receiver(post_save, sender=ActivateAccount_Email)
-def create_user_profile(sender, instance, **kwargs):
-    if instance.is_active==True and instance.user.userprofile==None: 
-        
-        UserProfile.objects.create(user=instance.user)
-        logger.info(f'UserProfile created for user: {instance.user}')
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        UserProfile.objects.create(user=instance)
+        logger.info(f'UserProfile created for user: {instance}')
+    else:
+        try:
+            instance.userprofile.save()
+            logger.info(f'UserProfile saved for user: {instance}')
+        except UserProfile.DoesNotExist:
+            UserProfile.objects.create(user=instance)  # Create UserProfile if it doesn't exist
+            logger.info(f'UserProfile created for user: {instance}')
 
 @receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):

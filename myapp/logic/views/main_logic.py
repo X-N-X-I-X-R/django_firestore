@@ -18,9 +18,9 @@ from django.shortcuts import redirect
 from django.contrib.auth import authenticate, login
 from termcolor import colored
 import logging
-from myapp.models.UserprofileFolder.userprofile_model import Images, UserProfile
+from myapp.models.UserprofileFolder.userprofile_model import Album, Images, UserProfile
 from myapp.models.models import User, Post, Comment, Like, Follow, Notification, ActivityLog, Message, ActivateAccount_Email
-from myapp.logic.convert_complex_data.serializers import ActivityLogSerializer, CommentSerializer, FollowSerializer, ImagesSerializer, LikeSerializer, MessageSerializer, NotificationSerializer, UserProfileSerializer, RegisterSerializer, PostSerializer
+from myapp.logic.convert_complex_data.serializers import ActivityLogSerializer, AlbumSerializer, CommentSerializer, FollowSerializer, ImagesSerializer, LikeSerializer, MessageSerializer, NotificationSerializer, UserProfileSerializer, RegisterSerializer, PostSerializer
 from decouple import config
 from rest_framework.permissions import IsAuthenticated
 
@@ -173,6 +173,14 @@ from rest_framework import viewsets, status
 from rest_framework.response import Response
 from myapp.logic.convert_complex_data.serializers import UserProfileSerializer
 
+# views.py
+
+from rest_framework import viewsets, status
+from rest_framework.response import Response
+from rest_framework.decorators import action
+from myapp.logic.convert_complex_data.serializers import UserProfileSerializer
+from myapp.models.models import UserProfile
+
 class UserProfileViewSet(viewsets.ModelViewSet):
     queryset = UserProfile.objects.all()
     serializer_class = UserProfileSerializer
@@ -222,16 +230,32 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         except UserProfile.DoesNotExist:
             return Response({'detail': 'User profile not found.'}, status=status.HTTP_404_NOT_FOUND)
 
+class AlbumViewSet(viewsets.ModelViewSet):
+    queryset = Album.objects.all()
+    serializer_class = AlbumSerializer
 
+    def get_queryset(self): # type: ignore
+        return self.queryset.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
 
 class ImagesViewSet(viewsets.ModelViewSet):
     queryset = Images.objects.all()
     serializer_class = ImagesSerializer
-    permission_classes = [IsAuthenticated]
-        
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user.userprofile) # type: ignore
 
+    def perform_create(self, serializer):
+        user_profile = self.request.user.userprofile # type: ignore
+        serializer.save(user=user_profile)
+
+    @action(detail=True, methods=['post'])
+    def set_profile_picture(self, request, pk=None):
+        image = self.get_object()
+        user = request.user.userprofile
+        user.images.update(is_profile_picture=False)
+        image.is_profile_picture = True
+        image.save()
+        return Response({'status': 'profile picture set'})
     
     
 class PostViewSet(viewsets.ModelViewSet):

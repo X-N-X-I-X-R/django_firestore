@@ -1,5 +1,6 @@
 from myapp.logic.views.jitsimeet import MeetingViewSet
-from myapp.logic.views.main_logic import ImagesViewSet
+from myapp.logic.views.main_logic import AlbumViewSet, ImagesViewSet
+from myapp.models.UserprofileFolder.userprofile_model import Album
 from ..imports.urls_imports import *
 from rest_framework import routers
 
@@ -22,6 +23,8 @@ router.register(r'activitylogs', ActivityLogViewSet, basename='activitylogs')
 router.register(r'messages', MessageViewSet, basename='messages')
 router.register(r'meetings', MeetingViewSet)
 router.register(r'images', ImagesViewSet, basename='images')
+router.register(r'albums', AlbumViewSet , basename='albums')
+
 
 urlpatterns = [
     path('api/', include(router.urls)),
