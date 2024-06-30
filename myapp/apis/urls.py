@@ -1,8 +1,34 @@
-from myapp.logic.views.jitsimeet import MeetingViewSet
-from myapp.logic.views.main_logic import AlbumViewSet, ImagesViewSet
-from myapp.models.UserprofileFolder.userprofile_model import Album
-from ..imports.urls_imports import *
+
+
+
+
+# Standard library imports
+from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
+
+# Third-party imports
 from rest_framework import routers
+from django.contrib.auth import views as auth_views
+
+# Local application imports
+from myapp.imports.views_imports import *  # Imports all view-related dependencies and viewsets
+from myapp.imports.model_imports import *
+from myapp.logic.views.breacking_logic.activationEmail import ActivateAccount
+from myapp.logic.views.breacking_logic.albumViewSet import AlbumViewSet
+from myapp.logic.views.breacking_logic.customToken import AutenticacionTokenView
+from myapp.logic.views.breacking_logic.imagesViewSet import ImagesViewSet
+from myapp.logic.views.breacking_logic.logoutView import LogoutView
+from myapp.logic.views.breacking_logic.registerUserViewSet import UserViewSet
+from myapp.logic.views.breacking_logic.userProfileViewSet import UserProfileViewSet
+from myapp.logic.views.jitsimeet import MeetingViewSet
+from myapp.logic.views.main_logic import ActivityLogViewSet, CommentViewSet, FollowViewSet, LikeViewSet, MessageViewSet, NotificationViewSet, PostViewSet  # Imports all model-related dependencies
+
+# Router and URL configuration remains unchanged
+
+
+
+
 
 admin_router = routers.DefaultRouter()
 
@@ -21,9 +47,9 @@ router.register(r'follows', FollowViewSet, basename='user-follow')
 router.register(r'notifications', NotificationViewSet, basename='notifications')
 router.register(r'activitylogs', ActivityLogViewSet, basename='activitylogs')
 router.register(r'messages', MessageViewSet, basename='messages')
-router.register(r'meetings', MeetingViewSet)
+router.register(r'meetings', MeetingViewSet, basename='meetings')
 router.register(r'images', ImagesViewSet, basename='images')
-router.register(r'albums', AlbumViewSet , basename='albums')
+router.register(r'albums', AlbumViewSet, basename='albums')
 
 
 urlpatterns = [

@@ -1,21 +1,14 @@
 from django.db import models
-from django.core.exceptions import ValidationError
-from django.utils.translation import gettext_lazy as _
+from django.contrib.auth.models import User
 from django.utils import timezone
 from dateutil.relativedelta import relativedelta
-from django.contrib.auth.models import User
-import re
 from django_countries.fields import CountryField
+from django.core.exceptions import ValidationError
+import random
 
 def default_date():
-    tiimezone = timezone.now().date() - relativedelta(years=18)
-    return tiimezone
-  
-from django.templatetags.static import static
+    return timezone.now().date() - relativedelta(years=18)
 
-def default_image():
-    return static('/Users/elmaliahmac/Documents/Full_stack/Django_server/media/default.jpeg')
-    
 def validate_image_file_size(image):
     if hasattr(image, 'file') and hasattr(image.file, 'size'):
         file_size = image.file.size
@@ -26,7 +19,20 @@ def validate_image_file_size(image):
         raise ValidationError(_('User profile image must be less than %s MB.' % limit_mb))
 
 def user_directory_path(instance, filename):
-    return 'user_{0}/{1}'.format(instance.user.id, filename)
+    if not filename:
+        random_number = random.randint(1000, 9999)
+        filename = f'random_{random_number}.jpg'
+    else:
+        filename = filename.replace(' ', '_')
+
+    if hasattr(instance, 'userprofile') and instance.userprofile:
+        user_id = instance.userprofile.user.id
+    elif hasattr(instance, 'user') and instance.user:
+        user_id = instance.user.id
+    else:
+        user_id = 'unknown'
+    
+    return f'user_{user_id}/{filename}'
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='userprofile')
@@ -40,15 +46,15 @@ class UserProfile(models.Model):
     user_website = models.URLField(max_length=200, blank=True, null=True)
     active = models.BooleanField(default=True)
     last_updated = models.DateTimeField(auto_now=True)
-
+    is_private_or_global = models.BooleanField(default=False, blank=True, null=True,choices=[(True, 'Private'), (False, 'Global')])
+    
     def get_user_id(self):
-        user_Profile_id = self.user.id  # type: ignore
-        return user_Profile_id
+        return self.user.id # type: ignore
 
     def save(self, *args, **kwargs):
         if not self.user_nickname:
             self.user_nickname = self.user.username
-        self.clean()  # Call clean to validate before saving
+        self.clean()
         if not self.last_login:
             self.last_login = timezone.now()
         super(UserProfile, self).save(*args, **kwargs)
@@ -73,27 +79,63 @@ class UserProfile(models.Model):
         self.validate_bio()
 
     def __str__(self):
-        return self.user.username  # type: ignore 
+        return self.user.username
 
 class Album(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='albums')
-    name = models.CharField(max_length=255)
+    title = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
+    is_private_or_global = models.BooleanField(default=False, blank=True, null=True,choices=[(True, 'Private'), (False, 'Global')])
+
+    def get_album_id(self):
+        return self.id # type: ignore
     
+    def save(self, *args, **kwargs):
+        self.clean()
+        super(Album, self).save(*args, **kwargs)
+        
+    def validate_title(self):
+        if Album.objects.filter(title=self.title).exists():
+            raise ValidationError(_('Album title must be unique.'))
+        if self.title and len(self.title) < 3:
+            raise ValidationError(_('Album title must be at least 3 characters long.'))
+        
+    def validation_models(self):
+        self.validate_title()
+        
     def __str__(self):
-        return self.name
+        return self.title
 
 class Images(models.Model):
     user = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='images')
-    album = models.ForeignKey(Album, on_delete=models.CASCADE, related_name='images', null=True, blank=True)
-    user_image_container = models.ImageField(default=default_image, blank=True, null=True, upload_to=user_directory_path, validators=[validate_image_file_size])
-    user_profile_image = models.ImageField(default=default_image, blank=True, null=True, upload_to=user_directory_path, validators=[validate_image_file_size])
-    image_subject = models.CharField(max_length=255, blank=True, null=True)
+    album = models.ForeignKey(Album, on_delete=models.CASCADE, related_name='images')
+    user_image_container = models.ImageField(
+        upload_to=user_directory_path,
+        validators=[validate_image_file_size]
+    )
+    created_at = models.DateTimeField(default=timezone.now, editable=False)
+    image_subject = models.CharField(max_length=25, blank=True, null=True)
+    is_private_or_global = models.BooleanField(default=False, blank=True, null=True,choices=[(True, 'Private'), (False, 'Global')])
     is_profile_picture = models.BooleanField(default=False)
-
+    
+    def get_image_id(self):
+        return self.id # type: ignore
+    
     def save(self, *args, **kwargs):
         self.clean()
         super(Images, self).save(*args, **kwargs)
-
+        
+    def validate_image_subject(self):
+        if Images.objects.filter(image_subject=self.image_subject).exists():
+            raise ValidationError(_('Image subject must be unique.'))
+        if self.image_subject and len(self.image_subject) < 3:
+            raise ValidationError(_('Image subject must be at least 3 characters long.'))
+        
+    def validation_models(self):
+        self.validate_image_subject()
+        
     def __str__(self):
-        return self.user.user.username  # type: ignore
+        return self.image_subject if self.image_subject else ''
+
+
+

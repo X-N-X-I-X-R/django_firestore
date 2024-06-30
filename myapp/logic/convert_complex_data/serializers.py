@@ -10,15 +10,8 @@ from django.contrib.auth.models import User
 # serializers.py
 
 
-class AlbumSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Album
-        fields = ['id', 'name', 'created_at']
 
-class ImagesSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Images
-        fields = ['id', 'user_image_container', 'user_profile_image', 'image_subject']
+
         
 from rest_framework import serializers
 from django_countries.fields import Country
@@ -28,16 +21,14 @@ from django.contrib.auth.models import User
 
 # serializers.py
 
-class UserProfileSerializer(serializers.ModelSerializer):
-    user_country = serializers.CharField(source='user_country.code', allow_blank=True, allow_null=True)
+from rest_framework import serializers
 
+
+class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
-        fields = [
-            'user_nickname', 'user_gender', 'user_country',
-            'user_birth_date', 'user_bio', 'user_website', 'active',
-            'user_register_date', 'last_login', 'last_updated', 'id',
-        ]
+        fields = ['user', 'user_nickname', 'user_gender', 'user_country', 'user_birth_date', 'user_register_date', 'last_login', 'user_bio', 'user_website', 'active', 'last_updated', 'is_private_or_global']
+
 
     def update(self, instance, validated_data):
         country_data = validated_data.pop('user_country', None)
@@ -89,7 +80,25 @@ class RegisterSerializer(serializers.ModelSerializer):
         model = User
         fields = ['username', 'email', 'password']
 
-class UserImageSerializer(serializers.ModelSerializer):
+
+
+
+
+class AlbumSerializer(serializers.ModelSerializer):
+    user = serializers.ReadOnlyField(source='user.username')  # Assuming you want to display the username of the user
+
+    class Meta:
+        model = Album
+        fields = ['id', 'user', 'title', 'created_at', 'is_private_or_global']
+        read_only_fields = ['id', 'user', 'created_at']
+
+
+class ImageSerializer(serializers.ModelSerializer):
+    user = serializers.ReadOnlyField(source='user.user.username')
+    album = AlbumSerializer(read_only=True)
+    user_image_container = serializers.ImageField(use_url=True)
+
     class Meta:
         model = Images
-        fields = ['user_image_container', 'user_profile_image']
+        fields = ['id', 'user', 'album', 'user_image_container', 'created_at', 'image_subject', 'is_profile_picture', 'is_private_or_global']
+        read_only_fields = ['id', 'user', 'created_at']

@@ -1,4 +1,5 @@
 # models imports  
+# pwd = /Users/elmaliahmac/Documents/Full_stack/Django_server/myapp/imports/model_imports.py
 
 from django.db import models
 from django.utils.translation import gettext_lazy as _
