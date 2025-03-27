@@ -1,0 +1,11 @@
+=== Security Test Summary ===
+Date: Thu Mar 27 20:25:39 IST 2025
+Total Tests:        5
+Test Categories:
+- csrf:        1 tests
+- file_upload:        1 tests
+- general:        1 tests
+- security_summary_20250327_202538.txt:        0 tests
+- sql_injection:        1 tests
+- xss:        1 tests
+=== End Summary ===
