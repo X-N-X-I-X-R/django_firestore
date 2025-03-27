@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verification Error</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 600px;
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border: 1px solid #f5c6cb;
+        }
+        .message {
+            color: #34495e;
+            margin-bottom: 30px;
+        }
+        .contact {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>שגיאת אימות</h1>
+        
+        <div class="error">
+            <h2>הקישור לאימות אינו תקין או שפג תוקפו</h2>
+            <p>{{ error_message }}</p>
+        </div>
+        
+        <div class="message">
+            <p>אנא נסה להירשם מחדש או צור קשר עם התמיכה אם אתה זקוק לעזרה.</p>
+        </div>
+        
+        <div class="contact">
+            <p>לתמיכה: <a href="mailto:{{ admin_email }}">{{ admin_email }}</a></p>
+        </div>
+    </div>
+</body>
+</html> 

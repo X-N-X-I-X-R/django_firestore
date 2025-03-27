@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Verify Your Email</title>
+</head>
+<body>
+    <h2>Welcome to Our Platform!</h2>
+    <p>Hi {{ user.username }},</p>
+    <p>Thank you for registering as an advisor. Please verify your email address by clicking the link below:</p>
+    <p><a href="{{ verification_url }}">Verify Email</a></p>
+    <p>This link will expire in 24 hours.</p>
+    <p>If you didn't create an account, you can safely ignore this email.</p>
+    <p>Best regards,<br>Our Team</p>
+</body>
+</html> 

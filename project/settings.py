@@ -16,10 +16,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config('DJANGO_SERVER')
 DEBUG = True
 
+# Custom user model
+AUTH_USER_MODEL = 'myapp.CustomUser'
 
 ALLOWED_HOSTS = ["*"]
 # settings.py
 # HOST_NAME = '127.0.0.1:8989'
+CORS_ALLOW_CREDENTIALS = True
+
+
+
 
 
 INSTALLED_APPS = [
@@ -30,7 +36,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'myapp',
-    'myapp.configurations',
     'corsheaders',
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
@@ -38,12 +43,9 @@ INSTALLED_APPS = [
     'channels',
     'sentry_sdk',
     'sentry_sdk.integrations.django',
-    'db_email_backend',  
     "debug_toolbar",
     'django_extensions',
     'django_countries',
-   
-
 ]
 
 # DATABASES = {
@@ -59,21 +61,25 @@ INSTALLED_APPS = [
 
 
 
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = config("EMAIL_HOST")
+# Email Configuration
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = config("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
+EMAIL_HOST_USER = 'allnewsimap@gmail.com'
+EMAIL_HOST_PASSWORD = 'asqj gzni nqpu arnn'
+DEFAULT_FROM_EMAIL = 'allnewsimap@gmail.com'
+ADMIN_EMAIL = 'allnewsimap@gmail.com'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-        
     ),
     'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',
+        'rest_framework.permissions.AllowAny',
     ),
+    'UNAUTHENTICATED_USER': None,
+    
 }
 SWAGGER_SETTINGS = {
     'SECURITY_DEFINITIONS': {
@@ -99,7 +105,7 @@ SIMPLE_JWT = {
     'ISSUER': "None",
     'JWK_URL': None, 
     'LEEWAY': 120, 
-    'AUTH_HEADER_TYPES': ('Bearer',),
+    'AUTH_HEADER_TYPES': ('Bearer', 'JWT'),
     'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
     'USER_ID_FIELD': 'id',
     'USER_ID_CLAIM': 'user_id',
@@ -122,8 +128,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'myapp.middlewares.EnsureActivatedMiddleware.SwaggerBypassAuthMiddleware',  # Correct path to the middleware
-    'myapp.middlewares.EnsureActivatedMiddleware.EnsureActivatedMiddleware',  # EnsureActivatedMiddleware also needs to be referenced if used
+    'myapp.middleware.APIMiddleware',
 ]
 
 
@@ -163,85 +168,14 @@ WSGI_APPLICATION = 'project.wsgi.application'
 ASGI_APPLICATION = 'myproject.routing.application'
 
 
-
-# Add these at the top of your settings.py
-
-
-# Replace the DATABASES section of your settings.py with this
-# Add these at the top of your settings.py
-
-# Replace the DATABASES section of your settings.py with this
-# DATABASES = {
-#   'default': {
-#     'ENGINE': 'django.db.backends.postgresql',
-#     'NAME': getenv('PGDATABASE'),
-#     'USER': getenv('PGUSER'),
-#     'PASSWORD': getenv('PGPASSWORD'),
-#     'HOST': getenv('PGHOST'),
-#     'PORT': getenv('PGPORT', 5432),
-#     'OPTIONS': {
-#       'sslmode': 'require',
-#     },
-#   }
-# }
-
-# import json
-
-# def load_json(file_path):
-#     with open(file_path, 'r') as file:
-#         return json.load(file)
-
-# def remove_duplicates(data):
-#     unique_records = []
-#     seen_records = set()
-#     for record in data:
-#         model = record['model']
-#         pk = record['pk']
-#         fields = tuple(record['fields'].items())
-#         record_id = (model, pk, fields)
-        
-#         if record_id not in seen_records:
-#             unique_records.append(record)
-#             seen_records.add(record_id)
-#     return unique_records
-
-# def clean_data(data):
-#     cleaned_data = []
-#     seen_users = set()
-#     for record in data:
-#         if record['model'] == 'myapp.userprofile':
-
-
-#             user_id = record['fields']['user']
-#             if user_id not in seen_users:
-#                 cleaned_data.append(record)
-#                 seen_users.add(user_id)
-#         else:
-
-
-#             cleaned_data.append(record)
-#     return cleaned_data
-
-# def save_json(file_path, data):
-#     with open(file_path, 'w') as file:
-#         json.dump(data, file, indent=4)
-
-# Load data
-# data = load_json('final_unique_data.json')
-
-
-
-
-
-
-# Remove duplicates
-# unique_data = remove_duplicates(data)
-
-# Clean user profiles to ensure no duplicate user entries
-# cleaned_data = clean_data(unique_data)
-
-# Save cleaned data to a new JSON file
-# save_json('cleaned_final_unique_data.json', cleaned_data)
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
+    },
+}
 
 
 
@@ -251,6 +185,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite',
     }}
+
 
 
 
@@ -289,24 +224,7 @@ MEDIA_URL = '/media/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOWED_ORIGINS = [
-    'http://localhost:3001',
-    'http://10.0.0.9:3001',
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",  
-    "http://192.168.0.253:3000",
-    "http://localhost:3000",
-    "http://localhost:3002",
-    "http://10.0.0.9:3002",
-    "http://localhost:8081",
-    "http://localhost:8082",
-    "http://localhost:8083",
-    "exp://10.0.0.11:8082",
-    "exp://10.0.0.11:8083",
-    "http://192.168.1.123:8083",
-    "http://192.168.1.123:8082",
-    'http://localhost:4200',
-    'http://localhost:4201',
-    'http://localhost:5173',
+
     
 ]
 
@@ -372,3 +290,13 @@ LOGGING = {
         },  
     },
 }
+
+
+
+
+
+
+## myproject.routing.application 
+# daphne -b 0.0.0.0 -p 8099 myproject.asgi:application
+
+
