@@ -28,8 +28,30 @@ save_to_local_repo(){
       git log -3 --oneline
 }
 
-# Run the function
+merge_to_main(){
+      echo "=== Merging to Main Branch ==="
+      
+      echo "1. Switching to main branch..."
+      git checkout main
+      
+      echo "2. Pulling latest changes from main..."
+      git pull origin main
+      
+      echo "3. Merging current branch into main..."
+      git merge -
+      
+      echo "4. Pushing merged changes to main..."
+      git push origin main
+      
+      echo "5. Switching back to previous branch..."
+      git checkout -
+      
+      echo "=== Finished Merging to Main ==="
+}
+
+# Run the functions
 save_to_local_repo
+merge_to_main
 
 # End time measurement
 end=$(date +%s)
