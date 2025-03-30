@@ -1,52 +1,62 @@
 #!/bin/bash
 
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+MAGENTA='\033[0;35m'
+CYAN='\033[0;36m'
+NC='\033[0m' # No Color
+BOLD='\033[1m'
+
 # Start time measurement
 start=$(date +%s)
 
-echo "=== LazyGitHub - Starting Process ==="
+echo -e "${BOLD}${BLUE}=== LazyGitHub - Starting Process ===${NC}"
 
 save_to_local_repo(){
-      echo "=== Pushing Changes to GitHub ==="
+      echo -e "${BOLD}${CYAN}=== Pushing Changes to GitHub ===${NC}"
       
-      echo "1. Adding files..."
+      echo -e "${YELLOW}1. Adding files...${NC}"
       git add .
       
-      echo "2. Creating commit..."
+      echo -e "${YELLOW}2. Creating commit...${NC}"
       git commit -m "lazygithub{$(date +%Y%m%d_%H%M%S)}"
       
-      echo "3. Pushing changes to remote..."
+      echo -e "${YELLOW}3. Pushing changes to remote...${NC}"
       git push
       
-      echo "=== Finished Pushing Changes ==="
+      echo -e "${GREEN}=== Finished Pushing Changes ===${NC}"
       
       # Show final status
-      echo "=== Current Repository Status ==="
+      echo -e "${BOLD}${CYAN}=== Current Repository Status ===${NC}"
       git status
       
       # Show recent commit history
-      echo "=== Recent Commit History ==="
+      echo -e "${BOLD}${CYAN}=== Recent Commit History ===${NC}"
       git log -3 --oneline
 }
 
 merge_to_main(){
-      echo "=== Merging to Main Branch ==="
+      echo -e "${BOLD}${MAGENTA}=== Merging to Main Branch ===${NC}"
       
-      echo "1. Switching to main branch..."
+      echo -e "${YELLOW}1. Switching to main branch...${NC}"
       git checkout main
       
-      echo "2. Pulling latest changes from main..."
+      echo -e "${YELLOW}2. Pulling latest changes from main...${NC}"
       git pull origin main
       
-      echo "3. Merging current branch into main..."
+      echo -e "${YELLOW}3. Merging current branch into main...${NC}"
       git merge -
       
-      echo "4. Pushing merged changes to main..."
+      echo -e "${YELLOW}4. Pushing merged changes to main...${NC}"
       git push origin main
       
-      echo "5. Switching back to previous branch..."
+      echo -e "${YELLOW}5. Switching back to previous branch...${NC}"
       git checkout -
       
-      echo "=== Finished Merging to Main ==="
+      echo -e "${GREEN}=== Finished Merging to Main ===${NC}"
 }
 
 # Run the functions
@@ -59,9 +69,9 @@ end=$(date +%s)
 # Calculate runtime
 duration=$((end - start))
 
-echo "=== Summary ==="
-echo "Runtime: $duration seconds"
-echo "=== LazyGitHub - Process Complete ===" 
+echo -e "${BOLD}${BLUE}=== Summary ===${NC}"
+echo -e "${GREEN}Runtime: ${duration} seconds${NC}"
+echo -e "${BOLD}${BLUE}=== LazyGitHub - Process Complete ===${NC}" 
 
 
 
