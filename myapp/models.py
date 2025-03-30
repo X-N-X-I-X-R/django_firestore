@@ -15,7 +15,12 @@ class CustomUser(AbstractUser):
     ]
 
     email = models.EmailField(_('email address'), unique=True)
-    phone_number = models.CharField(max_length=15, blank=True, null=True)
+    phone_number = models.CharField(
+        max_length=15,
+        blank=True,
+        null=True,
+        help_text="Enter phone number with country code (e.g., +972501234567)"
+    )
     registration_type = models.CharField(max_length=10, choices=REGISTRATION_TYPE_CHOICES, default='customer')
     is_advisor = models.BooleanField(default=False)
     is_customer = models.BooleanField(default=False)

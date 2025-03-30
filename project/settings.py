@@ -41,8 +41,6 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'drf_yasg',
     'channels',
-    'sentry_sdk',
-    'sentry_sdk.integrations.django',
     "debug_toolbar",
     'django_extensions',
     'django_countries',
@@ -68,7 +66,7 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'allnewsimap@gmail.com'
 EMAIL_HOST_PASSWORD = 'asqj gzni nqpu arnn'
-DEFAULT_FROM_EMAIL = 'allnewsimap@gmail.com'
+DEFAULT_FROM_EMAIL = 'Souly.AI <allnewsimap@gmail.com>'
 ADMIN_EMAIL = 'allnewsimap@gmail.com'
 
 REST_FRAMEWORK = {
@@ -79,7 +77,14 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.AllowAny',
     ),
     'UNAUTHENTICATED_USER': None,
-    
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle'
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '100/day',
+        'user': '1000/day'
+    }
 }
 SWAGGER_SETTINGS = {
     'SECURITY_DEFINITIONS': {
@@ -129,24 +134,13 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'myapp.middleware.APIMiddleware',
+    'myapp.middleware.SecurityLoggingMiddleware',
+    'myapp.middleware.CSRFMiddleware',
 ]
 
 
 
 ROOT_URLCONF = 'project.urls'
-
-import sentry_sdk 
-from sentry_sdk.integrations.django import DjangoIntegration
-from sentry_sdk.crons.decorator import monitor
-
-sentry_sdk.init(
-    dsn=config('SENTRY_DSN'),  # type: ignore
-    integrations=[DjangoIntegration()]
-)
-
-@monitor(monitor_slug='my-cron-monitor')
-def tell_the_world(msg):
-    print(msg)
 
 TEMPLATES = [
     {
@@ -197,6 +191,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {
+            'min_length': 8,
+        }
     },
     {
         'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
@@ -298,5 +295,21 @@ LOGGING = {
 
 ## myproject.routing.application 
 # daphne -b 0.0.0.0 -p 8099 myproject.asgi:application
+
+# Security Settings
+SECURE_SSL_REDIRECT = False if DEBUG else True
+SESSION_COOKIE_SECURE = False if DEBUG else True
+CSRF_COOKIE_SECURE = False if DEBUG else True
+CSRF_TRUSTED_ORIGINS = ['http://localhost:8000', 'http://127.0.0.1:8000']
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'Lax'
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
+SECURE_HSTS_SECONDS = 31536000  # 1 year
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
 
 

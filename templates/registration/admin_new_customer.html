@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>New Customer Registration</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .info-box {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .label {
+            font-weight: bold;
+            color: #495057;
+        }
+        .empty-value {
+            color: #6c757d;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <h2>New Customer Registration</h2>
+    <p>A new customer has registered on Souly.AI:</p>
+    
+    <div class="info-box">
+        <p><span class="label">Username:</span> {{ user.username|default:"Not provided" }}</p>
+        <p><span class="label">Full Name:</span> 
+            {% if user.first_name or user.last_name %}
+                {{ user.first_name }} {{ user.last_name }}
+            {% else %}
+                <span class="empty-value">Not provided</span>
+            {% endif %}
+        </p>
+        <p><span class="label">Email:</span> {{ user.email|default:"Not provided" }}</p>
+        <p><span class="label">Phone:</span> {{ user.phone_number|default:"Not provided" }}</p>
+        <p><span class="label">Country:</span> 
+            {% if user.country %}
+                {{ user.country.name }}
+            {% else %}
+                <span class="empty-value">Not provided</span>
+            {% endif %}
+        </p>
+        <p><span class="label">Registration Date:</span> {{ user.date_joined|date:"F j, Y, g:i a"|default:"Not provided" }}</p>
+    </div>
+    
+    <p>You can view their full profile in the admin panel.</p>
+    
+    <p>Best regards,<br>Souly.AI System</p>
+</body>
+</html> 

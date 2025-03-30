@@ -2,13 +2,15 @@ import logging
 from typing import Callable
 from functools import wraps
 
-from django.http import HttpRequest, HttpResponse, JsonResponse
+from django.http import HttpRequest, HttpResponse, JsonResponse, HttpResponseForbidden
 from django.urls import resolve
 from django.conf import settings
 from rest_framework import status
 from rest_framework.request import Request
+from .log import setup_logger
+import re
 
-logger = logging.getLogger(__name__)
+logger = setup_logger(__name__)
 
 class APIMiddleware:
     """
@@ -203,4 +205,95 @@ SWAGGER_SETTINGS = {
     'DEEP_LINKING': True,
     'DISPLAY_OPERATION_ID': False,
     'DEFAULT_MODEL_DEPTH': 3,
-} 
+}
+
+class SecurityLoggingMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+        # Compile regex patterns for sensitive data
+        self.sensitive_patterns = [
+            r'password',
+            r'token',
+            r'api_key',
+            r'secret',
+            r'credit_card',
+            r'ssn',
+            r'social_security'
+        ]
+
+    def __call__(self, request):
+        # Skip security checks for admin paths
+        if request.path.startswith('/admin/'):
+            return self.get_response(request)
+            
+        # Log request
+        self._log_request(request)
+        
+        # Check for suspicious patterns
+        if self._is_suspicious_request(request):
+            logger.warning(f"Suspicious request detected: {request.method} {request.path}")
+            return HttpResponseForbidden("Suspicious request detected")
+        
+        # Process response
+        response = self.get_response(request)
+        
+        # Log response
+        self._log_response(request, response)
+        
+        return response
+
+    def _log_request(self, request):
+        """Log request details"""
+        # Remove sensitive data from headers
+        headers = dict(request.headers)
+        for key in headers:
+            if any(pattern in key.lower() for pattern in self.sensitive_patterns):
+                headers[key] = '[REDACTED]'
+
+        logger.info(f"Request: {request.method} {request.path}")
+        logger.debug(f"Headers: {headers}")
+        logger.debug(f"Query Params: {dict(request.GET)}")
+
+    def _log_response(self, request, response):
+        """Log response details"""
+        if response.status_code >= 400:
+            logger.warning(
+                f"Error Response: {request.method} {request.path} - "
+                f"Status: {response.status_code}"
+            )
+
+    def _is_suspicious_request(self, request):
+        """Check for suspicious patterns in request"""
+        # Check headers
+        for header in request.headers:
+            if any(pattern in header.lower() for pattern in self.sensitive_patterns):
+                return True
+
+        # Check query parameters
+        for param in request.GET:
+            if any(pattern in param.lower() for pattern in self.sensitive_patterns):
+                return True
+
+        # Check POST data
+        if request.method == 'POST':
+            for key in request.POST:
+                if any(pattern in key.lower() for pattern in self.sensitive_patterns):
+                    return True
+
+        return False
+
+class CSRFMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        # Skip CSRF check for safe methods
+        if request.method in ('GET', 'HEAD', 'OPTIONS', 'TRACE'):
+            return self.get_response(request)
+
+        # Check CSRF token
+        if not request.is_secure() and not settings.DEBUG:
+            logger.warning(f"Insecure request detected: {request.method} {request.path}")
+            return HttpResponseForbidden("HTTPS required")
+
+        return self.get_response(request) 
