@@ -1,10 +1,13 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from .views import auth
+from .views import auth, profile
 
 router = DefaultRouter()
 router.register(r'users', auth.UserViewSet)
+router.register(r'profiles', profile.ProfileViewSet, basename='profile')
+router.register(r'advisors', profile.AdvisorProfileViewSet, basename='advisor-profile')
+router.register(r'customers', profile.CustomerProfileViewSet, basename='customer-profile')
 
 urlpatterns = [
     # API endpoints

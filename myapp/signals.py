@@ -17,3 +17,4 @@ def user_post_save(sender, instance, created, **kwargs):
             logger.info(f"New user created via signal: {instance.email}")
         except Exception as e:
             logger.error(f"Error in user_post_save signal for {instance.email}: {str(e)}") 
+            

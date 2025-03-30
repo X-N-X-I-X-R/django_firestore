@@ -1,17 +1,40 @@
 from rest_framework import serializers
-from .models import CustomUser
+from .models import CustomUser, Profile, Consultation, Review
 from django.contrib.auth.password_validation import validate_password
+
+class ProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = ('bio', 'profile_picture', 'created_at', 'updated_at')
+        read_only_fields = ('created_at', 'updated_at')
+
+class AdvisorProfileSerializer(serializers.ModelSerializer):
+    expertise = serializers.CharField(required=True)
+    hourly_rate = serializers.DecimalField(max_digits=10, decimal_places=2, required=True)
+    is_verified = serializers.BooleanField(read_only=True)
+    verification_documents = serializers.FileField(required=False)
+    
+    class Meta:
+        model = CustomUser
+        fields = ('expertise', 'hourly_rate', 'is_verified', 'verification_documents')
+
+class CustomerProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ('first_name', 'last_name', 'phone_number', 'country', 'birth_date')
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
     password2 = serializers.CharField(write_only=True, required=True)
     phone_number = serializers.CharField(required=True)
+    profile = ProfileSerializer(read_only=True)
     
     class Meta:
         model = CustomUser
         fields = ('id', 'username', 'email', 'password', 'password2', 'registration_type',
                  'first_name', 'last_name', 'phone_number', 'country', 'birth_date',
-                 'expertise', 'hourly_rate', 'verification_documents')
+                 'expertise', 'hourly_rate', 'verification_documents', 'is_verified',
+                 'profile')
         extra_kwargs = {
             'first_name': {'required': False},
             'last_name': {'required': False},
@@ -43,4 +66,28 @@ class UserSerializer(serializers.ModelSerializer):
         )
         user.set_password(validated_data['password'])
         user.save()
-        return user 
+        
+        # Create profile
+        Profile.objects.create(user=user)
+        
+        return user
+
+class ConsultationSerializer(serializers.ModelSerializer):
+    advisor_name = serializers.CharField(source='advisor.get_full_name', read_only=True)
+    customer_name = serializers.CharField(source='customer.get_full_name', read_only=True)
+    
+    class Meta:
+        model = Consultation
+        fields = ('id', 'title', 'description', 'price', 'duration', 'status',
+                 'created_at', 'updated_at', 'advisor', 'customer',
+                 'advisor_name', 'customer_name')
+        read_only_fields = ('created_at', 'updated_at', 'advisor', 'customer')
+
+class ReviewSerializer(serializers.ModelSerializer):
+    customer_name = serializers.CharField(source='customer.get_full_name', read_only=True)
+    
+    class Meta:
+        model = Review
+        fields = ('id', 'consultation', 'customer', 'rating', 'comment',
+                 'created_at', 'customer_name')
+        read_only_fields = ('created_at', 'customer') 
