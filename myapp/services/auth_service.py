@@ -4,6 +4,7 @@ from django.utils.html import strip_tags
 from django.conf import settings
 from django.core.signing import TimestampSigner
 from rest_framework_simplejwt.tokens import RefreshToken
+from datetime import datetime, timedelta
 from myapp.log import setup_logger
 
 logger = setup_logger(__name__)
@@ -112,14 +113,33 @@ class AuthService:
 
     @staticmethod
     def generate_tokens(user):
-        """Generate JWT tokens for user"""
+        """Generate JWT tokens for user with enhanced security"""
         try:
+            # Create base refresh token
             refresh = RefreshToken.for_user(user)
+            
+            # Add custom claims to refresh token
+            refresh['aud'] = "Nir Fullstack Project"
+            refresh['iss'] = "Nir Fullstack Auth Service"
+            refresh['user_type'] = "advisor" if hasattr(user, 'advisor') else "customer"
+            refresh['email_verified'] = user.is_email_verified
+            
+            # Create access token with shorter expiration
+            access_token = refresh.access_token
+            access_token['aud'] = "Nir Fullstack Project"
+            access_token['iss'] = "Nir Fullstack Auth Service"
+            access_token['user_type'] = "advisor" if hasattr(user, 'advisor') else "customer"
+            access_token['email_verified'] = user.is_email_verified
+            
+            # Set access token expiration to 15 minutes
+            access_token.set_exp(lifetime=timedelta(minutes=15))
+            
             tokens = {
                 'refresh': str(refresh),
-                'access': str(refresh.access_token),
+                'access': str(access_token),
             }
-            logger.info(f"Generated tokens for user: {user.email}")
+            
+            logger.info(f"Generated enhanced tokens for user: {user.email}")
             return tokens
         except Exception as e:
             logger.error(f"Failed to generate tokens for {user.email}: {str(e)}")

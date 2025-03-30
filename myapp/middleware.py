@@ -220,10 +220,17 @@ class SecurityLoggingMiddleware:
             r'ssn',
             r'social_security'
         ]
+        # Define paths that should be excluded from security checks
+        self.excluded_paths = [
+            '/api/v1/auth/register/',
+            '/api/v1/auth/login/',
+            '/api/v1/auth/token/',
+            '/api/v1/auth/token/refresh/'
+        ]
 
     def __call__(self, request):
-        # Skip security checks for admin paths
-        if request.path.startswith('/admin/'):
+        # Skip security checks for admin paths and excluded paths
+        if request.path.startswith('/admin/') or any(request.path.startswith(path) for path in self.excluded_paths):
             return self.get_response(request)
             
         # Log request
@@ -285,10 +292,17 @@ class SecurityLoggingMiddleware:
 class CSRFMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
+        # Define paths that should be excluded from CSRF checks
+        self.excluded_paths = [
+            '/api/v1/auth/register/',
+            '/api/v1/auth/login/',
+            '/api/v1/auth/token/',
+            '/api/v1/auth/token/refresh/'
+        ]
 
     def __call__(self, request):
-        # Skip CSRF check for safe methods
-        if request.method in ('GET', 'HEAD', 'OPTIONS', 'TRACE'):
+        # Skip CSRF check for safe methods and excluded paths
+        if request.method in ('GET', 'HEAD', 'OPTIONS', 'TRACE') or any(request.path.startswith(path) for path in self.excluded_paths):
             return self.get_response(request)
 
         # Check CSRF token

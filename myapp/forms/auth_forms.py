@@ -75,8 +75,8 @@ class AdvisorRegistrationForm(BaseRegistrationForm):
         help_text="Enter your hourly consultation rate in USD (e.g., 150.00)"
     )
     verification_documents = forms.FileField(
-        required=True,
-        help_text="Upload your professional certifications, licenses, or relevant credentials (PDF, JPG, or PNG)"
+        required=False,
+        help_text="Upload your professional certifications, licenses, or relevant credentials (PDF, JPG, or PNG) - Optional"
     )
 
     class Meta:

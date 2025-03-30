@@ -301,8 +301,8 @@ SECURE_SSL_REDIRECT = False if DEBUG else True
 SESSION_COOKIE_SECURE = False if DEBUG else True
 CSRF_COOKIE_SECURE = False if DEBUG else True
 CSRF_TRUSTED_ORIGINS = ['http://localhost:8000', 'http://127.0.0.1:8000']
+CSRF_COOKIE_HTTPONLY = False  # Allow JavaScript access to CSRF token
 SESSION_COOKIE_HTTPONLY = True
-CSRF_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_SAMESITE = 'Lax'
 SECURE_BROWSER_XSS_FILTER = True
@@ -311,5 +311,13 @@ X_FRAME_OPTIONS = 'DENY'
 SECURE_HSTS_SECONDS = 31536000  # 1 year
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
+
+# Add CSRF exempt URLs
+CSRF_EXEMPT_URLS = [
+    '/api/v1/auth/register/',
+    '/api/v1/auth/login/',
+    '/api/v1/auth/token/',
+    '/api/v1/auth/token/refresh/'
+]
 
 
