@@ -1,93 +1,315 @@
 from rest_framework import serializers
-from .models import CustomUser, Profile, Consultation, Review
-from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth import get_user_model
+from .models import (
+    User, Customer, Notification, Wallet, Transaction,
+    Advisor, Consultation, ServiceAvailability, VideoChat,
+    PhoneCall, Order, Rating, Review, Follower, Subscription,
+    Coin, CoinTransaction, CoinPurchase, Payment, AdvisorApplication
+)
 
-class ProfileSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Profile
-        fields = ('bio', 'profile_picture', 'created_at', 'updated_at')
-        read_only_fields = ('created_at', 'updated_at')
-
-class AdvisorProfileSerializer(serializers.ModelSerializer):
-    expertise = serializers.CharField(required=True)
-    hourly_rate = serializers.DecimalField(max_digits=10, decimal_places=2, required=True)
-    is_verified = serializers.BooleanField(read_only=True)
-    verification_documents = serializers.FileField(required=False)
-    
-    class Meta:
-        model = CustomUser
-        fields = ('expertise', 'hourly_rate', 'is_verified', 'verification_documents')
-
-class CustomerProfileSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CustomUser
-        fields = ('first_name', 'last_name', 'phone_number', 'country', 'birth_date')
+User = get_user_model()
 
 class UserSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
-    password2 = serializers.CharField(write_only=True, required=True)
-    phone_number = serializers.CharField(required=True)
-    profile = ProfileSerializer(read_only=True)
-    
+    password = serializers.CharField(write_only=True)
+    password_confirmation = serializers.CharField(write_only=True)
+    user_type = serializers.ChoiceField(choices=[('advisor', 'Advisor'), ('customer', 'Customer')], required=True)
+
     class Meta:
-        model = CustomUser
-        fields = ('id', 'username', 'email', 'password', 'password2', 'registration_type',
-                 'first_name', 'last_name', 'phone_number', 'country', 'birth_date',
-                 'expertise', 'hourly_rate', 'verification_documents', 'is_verified',
-                 'profile')
-        extra_kwargs = {
-            'first_name': {'required': False},
-            'last_name': {'required': False},
-            'birth_date': {'required': False},
-            'expertise': {'required': False},
-            'hourly_rate': {'required': False},
-            'verification_documents': {'required': False}
-        }
-    
-    def validate(self, attrs):
-        if attrs['password'] != attrs['password2']:
-            raise serializers.ValidationError({"password": "Password fields didn't match."})
-        return attrs
-    
+        model = User
+        fields = ('id', 'email', 'username', 'password', 'password_confirmation',
+                 'first_name', 'last_name', 'is_active', 'is_verified', 'user_type')
+        read_only_fields = ('id', 'is_active', 'is_verified')
+
+    def validate(self, data):
+        if data.get('password') != data.get('password_confirmation'):
+            raise serializers.ValidationError({'password_confirmation': 'Passwords do not match'})
+        
+        # Add validation for advisor registration
+        if data.get('user_type') == 'advisor':
+            raise serializers.ValidationError({
+                'user_type': 'Advisor registration is not allowed through regular registration. Please contact support.'
+            })
+        
+        return data
+
     def create(self, validated_data):
-        validated_data.pop('password2')
-        user = CustomUser.objects.create(
-            username=validated_data['username'],
-            email=validated_data['email'],
-            first_name=validated_data.get('first_name', ''),
-            last_name=validated_data.get('last_name', ''),
-            phone_number=validated_data.get('phone_number'),
-            country=validated_data.get('country'),
-            birth_date=validated_data.get('birth_date'),
-            registration_type=validated_data.get('registration_type', 'customer'),
-            expertise=validated_data.get('expertise'),
-            hourly_rate=validated_data.get('hourly_rate'),
-            verification_documents=validated_data.get('verification_documents')
-        )
-        user.set_password(validated_data['password'])
+        validated_data.pop('password_confirmation')
+        password = validated_data.pop('password')
+        user = User.objects.create(**validated_data)
+        user.set_password(password)
         user.save()
-        
-        # Create profile
-        Profile.objects.create(user=user)
-        
         return user
 
+class AdvisorApplicationSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(write_only=True)
+    password = serializers.CharField(write_only=True)
+    password_confirmation = serializers.CharField(write_only=True)
+    username = serializers.CharField(write_only=True)
+    first_name = serializers.CharField(write_only=True)
+    last_name = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = AdvisorApplication
+        fields = (
+            'id', 'email', 'username', 'password', 'password_confirmation',
+            'first_name', 'last_name', 'professional_title', 'years_of_experience',
+            'specialization', 'education', 'certifications', 'about', 'status',
+            'submitted_at', 'processed_at'
+        )
+        read_only_fields = ('id', 'status', 'submitted_at', 'processed_at')
+
+    def validate(self, data):
+        if data.get('password') != data.get('password_confirmation'):
+            raise serializers.ValidationError({'password_confirmation': 'Passwords do not match'})
+        return data
+
+    def create(self, validated_data):
+        user_data = {
+            'email': validated_data.pop('email'),
+            'username': validated_data.pop('username'),
+            'password': validated_data.pop('password'),
+            'first_name': validated_data.pop('first_name'),
+            'last_name': validated_data.pop('last_name'),
+            'user_type': 'customer'  # Initially set as customer until approved
+        }
+        validated_data.pop('password_confirmation')
+        
+        # Create user
+        user = User.objects.create_user(**user_data)
+        
+        # Create advisor application
+        advisor_application = AdvisorApplication.objects.create(user=user, **validated_data)
+        return advisor_application
+
+# Base Serializers
+class BaseUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id', 'email', 'username', 'first_name', 'last_name', 'is_active',)
+        read_only_fields = ('id', 'is_active',)
+
+class BaseCustomerSerializer(serializers.ModelSerializer):
+    user = BaseUserSerializer(read_only=True)
+
+    class Meta:
+        model = Customer
+        fields = ('id', 'user', 'is_active',)
+        read_only_fields = ('id',)
+
+class BaseNotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notification
+        fields = ('id', 'notification_type', 'title', 'message', 'is_read', 'created_at',)
+        read_only_fields = ('id', 'created_at',)
+
+class BaseWalletSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Wallet
+        fields = ('id', 'balance', 'created_at', 'updated_at',)
+        read_only_fields = ('id', 'created_at', 'updated_at',)
+
+class BaseTransactionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Transaction
+        fields = ('id', 'transaction_type', 'amount', 'description', 'created_at',)
+        read_only_fields = ('id', 'created_at',)
+
+class BaseCoinSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Coin
+        fields = ('id', 'code', 'amount', 'is_used', 'created_at', 'used_at',)
+        read_only_fields = ('id', 'code', 'created_at', 'used_at',)
+
+class BaseCoinTransactionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CoinTransaction
+        fields = ('id', 'amount', 'transaction_type', 'description', 'created_at',)
+        read_only_fields = ('id', 'created_at',)
+
+class BaseCoinPurchaseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CoinPurchase
+        fields = ('id', 'amount', 'price', 'status', 'transaction_id', 'created_at', 'completed_at',)
+        read_only_fields = ('id', 'status', 'created_at', 'completed_at',)
+
+    def validate(self, data):
+        if data.get('amount', 0) <= 0:
+            raise serializers.ValidationError({'amount': 'Amount must be greater than 0'})
+        if data.get('price', 0) <= 0:
+            raise serializers.ValidationError({'price': 'Price must be greater than 0'})
+        return data
+
+# Customer Serializers
+class CustomerSerializer(BaseCustomerSerializer):
+    class Meta(BaseCustomerSerializer.Meta):
+        fields = ('id', 'user', 'is_active', 'created_at', 'updated_at')
+        read_only_fields = ('id', 'created_at', 'updated_at')
+
+class CustomerUserSerializer(BaseUserSerializer):
+    class Meta(BaseUserSerializer.Meta):
+        fields = ('id', 'email', 'username', 'first_name', 'last_name', 'is_active',)
+
+class CustomerNotificationSerializer(BaseNotificationSerializer):
+    class Meta(BaseNotificationSerializer.Meta):
+        fields = ('id', 'notification_type', 'title', 'message', 'is_read', 'created_at',)
+
+class CustomerWalletSerializer(BaseWalletSerializer):
+    class Meta(BaseWalletSerializer.Meta):
+        fields = ('id', 'balance', 'created_at', 'updated_at',)
+
+class CustomerTransactionSerializer(BaseTransactionSerializer):
+    class Meta(BaseTransactionSerializer.Meta):
+        fields = ('id', 'transaction_type', 'amount', 'description', 'created_at',)
+
+class CustomerCoinSerializer(BaseCoinSerializer):
+    class Meta(BaseCoinSerializer.Meta):
+        fields = ('id', 'amount', 'is_used', 'created_at',)
+
+class CustomerCoinTransactionSerializer(BaseCoinTransactionSerializer):
+    class Meta(BaseCoinTransactionSerializer.Meta):
+        fields = ('id', 'amount', 'transaction_type', 'description', 'created_at',)
+
+class CustomerCoinPurchaseSerializer(BaseCoinPurchaseSerializer):
+    class Meta(BaseCoinPurchaseSerializer.Meta):
+        fields = ('id', 'amount', 'price', 'status', 'created_at',)
+
+# Advisor Serializers
+class AdvisorUserSerializer(BaseUserSerializer):
+    class Meta(BaseUserSerializer.Meta):
+        fields = ('id', 'email', 'username', 'first_name', 'last_name', 'is_active',)
+
+class AdvisorSerializer(serializers.ModelSerializer):
+    user = AdvisorUserSerializer(read_only=True)
+    rating = serializers.DecimalField(max_digits=3, decimal_places=2, read_only=True)
+    total_consultations = serializers.IntegerField(read_only=True)
+    total_video_chats = serializers.IntegerField(read_only=True)
+    total_phone_calls = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = Advisor
+        fields = '__all__'
+        read_only_fields = ('id', 'rating', 'total_consultations', 'total_video_chats', 'total_phone_calls',)
+
+class AdvisorNotificationSerializer(BaseNotificationSerializer):
+    class Meta(BaseNotificationSerializer.Meta):
+        fields = ('id', 'notification_type', 'title', 'message', 'is_read', 'created_at',)
+
+class AdvisorWalletSerializer(BaseWalletSerializer):
+    class Meta(BaseWalletSerializer.Meta):
+        fields = ('id', 'balance', 'created_at', 'updated_at',)
+
+class AdvisorTransactionSerializer(BaseTransactionSerializer):
+    class Meta(BaseTransactionSerializer.Meta):
+        fields = ('id', 'transaction_type', 'amount', 'description', 'created_at',)
+
+class AdvisorCoinSerializer(BaseCoinSerializer):
+    class Meta(BaseCoinSerializer.Meta):
+        fields = ('id', 'amount', 'is_used', 'created_at',)
+
+class AdvisorCoinTransactionSerializer(BaseCoinTransactionSerializer):
+    class Meta(BaseCoinTransactionSerializer.Meta):
+        fields = ('id', 'amount', 'transaction_type', 'description', 'created_at',)
+
+class AdvisorCoinPurchaseSerializer(BaseCoinPurchaseSerializer):
+    class Meta(BaseCoinPurchaseSerializer.Meta):
+        fields = ('id', 'amount', 'price', 'status', 'created_at',)
+
+# Admin Serializers
+class AdminUserSerializer(BaseUserSerializer):
+    class Meta(BaseUserSerializer.Meta):
+        fields = '__all__'
+        extra_kwargs = {'password': {'write_only': True}}
+
+class AdminCustomerSerializer(BaseCustomerSerializer):
+    class Meta(BaseCustomerSerializer.Meta):
+        fields = '__all__'
+
+class AdminNotificationSerializer(BaseNotificationSerializer):
+    class Meta(BaseNotificationSerializer.Meta):
+        fields = '__all__'
+
+class AdminWalletSerializer(BaseWalletSerializer):
+    class Meta(BaseWalletSerializer.Meta):
+        fields = '__all__'
+
+class AdminTransactionSerializer(BaseTransactionSerializer):
+    class Meta(BaseTransactionSerializer.Meta):
+        fields = '__all__'
+
+class AdminCoinSerializer(BaseCoinSerializer):
+    class Meta(BaseCoinSerializer.Meta):
+        fields = '__all__'
+
+class AdminCoinTransactionSerializer(BaseCoinTransactionSerializer):
+    class Meta(BaseCoinTransactionSerializer.Meta):
+        fields = '__all__'
+
+class AdminCoinPurchaseSerializer(BaseCoinPurchaseSerializer):
+    class Meta(BaseCoinPurchaseSerializer.Meta):
+        fields = '__all__'
+
+# Consultation and Service Serializers
 class ConsultationSerializer(serializers.ModelSerializer):
-    advisor_name = serializers.CharField(source='advisor.get_full_name', read_only=True)
-    customer_name = serializers.CharField(source='customer.get_full_name', read_only=True)
-    
     class Meta:
         model = Consultation
-        fields = ('id', 'title', 'description', 'price', 'duration', 'status',
-                 'created_at', 'updated_at', 'advisor', 'customer',
-                 'advisor_name', 'customer_name')
-        read_only_fields = ('created_at', 'updated_at', 'advisor', 'customer')
+        fields = '__all__'
+        read_only_fields = ('id', 'created_at',)
+
+class ServiceAvailabilitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ServiceAvailability
+        fields = '__all__'
+        read_only_fields = ('id',)
+
+class VideoChatSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = VideoChat
+        fields = '__all__'
+        read_only_fields = ('id', 'created_at',)
+
+class PhoneCallSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PhoneCall
+        fields = '__all__'
+        read_only_fields = ('id', 'created_at',)
+
+class OrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Order
+        fields = '__all__'
+        read_only_fields = ('id', 'created_at',)
+
+class RatingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Rating
+        fields = '__all__'
+        read_only_fields = ('id', 'created_at',)
 
 class ReviewSerializer(serializers.ModelSerializer):
-    customer_name = serializers.CharField(source='customer.get_full_name', read_only=True)
-    
     class Meta:
         model = Review
-        fields = ('id', 'consultation', 'customer', 'rating', 'comment',
-                 'created_at', 'customer_name')
-        read_only_fields = ('created_at', 'customer') 
+        fields = '__all__'
+        read_only_fields = ('id', 'created_at',)
+
+class FollowerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Follower
+        fields = '__all__'
+        read_only_fields = ('id', 'created_at',)
+
+class SubscriptionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Subscription
+        fields = '__all__'
+        read_only_fields = ('id', 'created_at',)
+
+class PaymentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Payment
+        fields = '__all__'
+        read_only_fields = ('id', 'created_at', 'completed_at', 'refunded_at')
+
+    def validate(self, data):
+        if data.get('amount', 0) <= 0:
+            raise serializers.ValidationError({'amount': 'Amount must be greater than 0'})
+        return data

@@ -1,5 +1,27 @@
 from rest_framework import permissions
 
+class IsCustomer(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and hasattr(request.user, 'customer')
+
+class IsAdvisor(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and hasattr(request.user, 'advisor')
+
+class IsAdmin(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and request.user.is_staff
+
+class IsOwnerOrAdmin(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        if request.user.is_staff:
+            return True
+        return obj.user == request.user
+
+class IsCustomerOrAdvisor(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and (hasattr(request.user, 'customer') or hasattr(request.user, 'advisor'))
+
 class IsOwnerOrReadOnly(permissions.BasePermission):
     """
     Custom permission to only allow owners of an object to edit it.
@@ -24,7 +46,7 @@ class IsAdvisorOrReadOnly(permissions.BasePermission):
             return True
 
         # Write permissions are only allowed to advisors.
-        return request.user.is_authenticated and request.user.is_advisor
+        return request.user.is_authenticated and hasattr(request.user, 'advisor')
 
 class IsCustomerOrReadOnly(permissions.BasePermission):
     """
@@ -37,4 +59,4 @@ class IsCustomerOrReadOnly(permissions.BasePermission):
             return True
 
         # Write permissions are only allowed to customers.
-        return request.user.is_authenticated and request.user.is_customer 
+        return request.user.is_authenticated and hasattr(request.user, 'customer') 
