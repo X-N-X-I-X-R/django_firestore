@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
+from decimal import Decimal
 from .models import (
     User, Customer, Notification, Wallet, Transaction,
     Advisor, Consultation, ServiceAvailability, VideoChat,
@@ -313,3 +314,107 @@ class PaymentSerializer(serializers.ModelSerializer):
         if data.get('amount', 0) <= 0:
             raise serializers.ValidationError({'amount': 'Amount must be greater than 0'})
         return data
+
+class TransactionSerializer(serializers.ModelSerializer):
+    amount = serializers.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        min_value=Decimal('0.01'),
+        max_value=Decimal('999999.99')
+    )
+
+    class Meta:
+        model = Transaction
+        fields = '__all__'
+
+class WalletSerializer(serializers.ModelSerializer):
+    balance = serializers.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        min_value=Decimal('0.00'),
+        read_only=True
+    )
+
+    class Meta:
+        model = Wallet
+        fields = '__all__'
+
+class CoinTransactionSerializer(serializers.ModelSerializer):
+    amount = serializers.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        min_value=Decimal('0.01'),
+        max_value=Decimal('999999.99')
+    )
+
+    class Meta:
+        model = CoinTransaction
+        fields = '__all__'
+
+class CoinPurchaseSerializer(serializers.ModelSerializer):
+    amount = serializers.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        min_value=Decimal('0.01'),
+        max_value=Decimal('999999.99')
+    )
+    price = serializers.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        min_value=Decimal('0.01'),
+        max_value=Decimal('999999.99')
+    )
+
+    class Meta:
+        model = CoinPurchase
+        fields = '__all__'
+
+class OrderSerializer(serializers.ModelSerializer):
+    amount = serializers.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        min_value=Decimal('0.01'),
+        max_value=Decimal('999999.99')
+    )
+
+    class Meta:
+        model = Order
+        fields = '__all__'
+
+class RatingSerializer(serializers.ModelSerializer):
+    rating = serializers.DecimalField(
+        max_digits=3,
+        decimal_places=1,
+        min_value=Decimal('0.0'),
+        max_value=Decimal('5.0')
+    )
+
+    class Meta:
+        model = Rating
+        fields = '__all__'
+
+# Customer specific serializers
+class CustomerTransactionSerializer(TransactionSerializer):
+    pass
+
+class CustomerWalletSerializer(WalletSerializer):
+    pass
+
+class CustomerCoinTransactionSerializer(CoinTransactionSerializer):
+    pass
+
+class CustomerCoinPurchaseSerializer(CoinPurchaseSerializer):
+    pass
+
+# Advisor specific serializers
+class AdvisorTransactionSerializer(TransactionSerializer):
+    pass
+
+class AdvisorWalletSerializer(WalletSerializer):
+    pass
+
+class AdvisorCoinTransactionSerializer(CoinTransactionSerializer):
+    pass
+
+class AdvisorCoinPurchaseSerializer(CoinPurchaseSerializer):
+    pass

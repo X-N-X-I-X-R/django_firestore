@@ -11,7 +11,7 @@ from ..models import (
     Advisor, Notification, Wallet, Transaction,
     Consultation, VideoChat, PhoneCall, Order,
     Rating, Review, Follower, Subscription,
-    Coin, CoinTransaction, CoinPurchase
+    Coin, CoinTransaction, CoinPurchase, ServiceAvailability
 )
 from ..serializers import (
     AdvisorSerializer, AdvisorNotificationSerializer,
@@ -53,11 +53,13 @@ class BaseAdvisorViewSet(viewsets.ModelViewSet):
             )
         return super().handle_exception(exc)
 
-class AdvisorViewSet(BaseAdvisorViewSet):
+class AdvisorViewSet(viewsets.ModelViewSet):
     serializer_class = AdvisorSerializer
 
     def get_queryset(self):
-        return Advisor.objects.filter(user=self.request.user).select_related('user')
+        if getattr(self, 'swagger_fake_view', False):
+            return Advisor.objects.none()
+        return Advisor.objects.filter(user=self.request.user)
 
     @action(detail=True, methods=['get'])
     def statistics(self, request, pk=None):
@@ -80,7 +82,9 @@ class NotificationViewSet(BaseAdvisorViewSet):
     serializer_class = AdvisorNotificationSerializer
 
     def get_queryset(self):
-        return Notification.objects.filter(user=self.request.user)
+        if getattr(self, 'swagger_fake_view', False):
+            return Notification.objects.none()
+        return Notification.objects.filter(recipient=self.request.user)
 
     @action(detail=True, methods=['post'])
     def mark_as_read(self, request, pk=None):
@@ -100,19 +104,27 @@ class TransactionViewSet(BaseAdvisorViewSet):
     serializer_class = AdvisorTransactionSerializer
 
     def get_queryset(self):
-        return Transaction.objects.filter(user=self.request.user).select_related('user')
+        if getattr(self, 'swagger_fake_view', False):
+            return Transaction.objects.none()
+        # Get the user's wallet first
+        wallet = Wallet.objects.get(user=self.request.user)
+        return Transaction.objects.filter(wallet=wallet).select_related('wallet')
 
 class AdvisorCoinViewSet(BaseAdvisorViewSet):
     serializer_class = AdvisorCoinSerializer
 
     def get_queryset(self):
-        return Coin.objects.filter(user=self.request.user).select_related('user')
+        if getattr(self, 'swagger_fake_view', False):
+            return Coin.objects.none()
+        return Coin.objects.filter(wallet__user=self.request.user).select_related('wallet')
 
 class AdvisorCoinTransactionViewSet(BaseAdvisorViewSet):
     serializer_class = AdvisorCoinTransactionSerializer
 
     def get_queryset(self):
-        return CoinTransaction.objects.filter(user=self.request.user).select_related('user')
+        if getattr(self, 'swagger_fake_view', False):
+            return CoinTransaction.objects.none()
+        return CoinTransaction.objects.filter(wallet__user=self.request.user).select_related('wallet')
 
     @action(detail=False, methods=['post'])
     def withdraw(self, request):
@@ -131,7 +143,7 @@ class AdvisorCoinTransactionViewSet(BaseAdvisorViewSet):
 
             # Create withdrawal transaction
             CoinTransaction.objects.create(
-                user=request.user,
+                wallet=wallet,
                 amount=amount,
                 transaction_type='withdrawal',
                 description=f'Withdrawal of {amount} coins'
@@ -176,6 +188,8 @@ class ConsultationViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Consultation.objects.none()
         return Consultation.objects.filter(advisor=self.request.user.advisor)
 
     def perform_create(self, serializer):
@@ -186,6 +200,8 @@ class ServiceAvailabilityViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return ServiceAvailability.objects.none()
         return ServiceAvailability.objects.filter(advisor=self.request.user.advisor)
 
     def perform_create(self, serializer):
@@ -196,6 +212,8 @@ class VideoChatViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return VideoChat.objects.none()
         return VideoChat.objects.filter(advisor=self.request.user.advisor)
 
     def perform_create(self, serializer):
@@ -206,6 +224,8 @@ class PhoneCallViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return PhoneCall.objects.none()
         return PhoneCall.objects.filter(advisor=self.request.user.advisor)
 
     def perform_create(self, serializer):
@@ -216,6 +236,8 @@ class OrderViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Order.objects.none()
         return Order.objects.filter(advisor=self.request.user.advisor)
 
     def perform_create(self, serializer):
@@ -226,6 +248,8 @@ class RatingViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Rating.objects.none()
         return Rating.objects.filter(advisor=self.request.user.advisor)
 
     def perform_create(self, serializer):
@@ -236,6 +260,8 @@ class ReviewViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Review.objects.none()
         return Review.objects.filter(advisor=self.request.user.advisor)
 
     def perform_create(self, serializer):
@@ -246,6 +272,8 @@ class FollowerViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Follower.objects.none()
         return Follower.objects.filter(advisor=self.request.user.advisor)
 
     def perform_create(self, serializer):
@@ -256,6 +284,8 @@ class SubscriptionViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Subscription.objects.none()
         return Subscription.objects.filter(advisor=self.request.user.advisor)
 
     def perform_create(self, serializer):

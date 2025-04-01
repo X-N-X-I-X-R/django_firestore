@@ -57,13 +57,17 @@ class CustomerViewSet(BaseCustomerViewSet):
     serializer_class = CustomerUserSerializer
 
     def get_queryset(self):
-        return Customer.objects.filter(user=self.request.user).select_related('user')
+        if getattr(self, 'swagger_fake_view', False):
+            return Customer.objects.none()
+        return Customer.objects.filter(user=self.request.user)
 
 class NotificationViewSet(BaseCustomerViewSet):
     serializer_class = CustomerNotificationSerializer
 
     def get_queryset(self):
-        return Notification.objects.filter(user=self.request.user)
+        if getattr(self, 'swagger_fake_view', False):
+            return Notification.objects.none()
+        return Notification.objects.filter(recipient=self.request.user)
 
     @action(detail=True, methods=['post'])
     def mark_as_read(self, request, pk=None):
@@ -99,19 +103,27 @@ class TransactionViewSet(BaseCustomerViewSet):
     serializer_class = CustomerTransactionSerializer
 
     def get_queryset(self):
-        return Transaction.objects.filter(user=self.request.user).select_related('user')
+        if getattr(self, 'swagger_fake_view', False):
+            return Transaction.objects.none()
+        # Get the user's wallet first
+        wallet = Wallet.objects.get(user=self.request.user)
+        return Transaction.objects.filter(wallet=wallet).select_related('wallet')
 
 class CustomerCoinViewSet(BaseCustomerViewSet):
     serializer_class = CustomerCoinSerializer
 
     def get_queryset(self):
-        return Coin.objects.filter(user=self.request.user).select_related('user')
+        if getattr(self, 'swagger_fake_view', False):
+            return Coin.objects.none()
+        return Coin.objects.filter(wallet__user=self.request.user).select_related('wallet')
 
 class CustomerCoinTransactionViewSet(BaseCustomerViewSet):
     serializer_class = CustomerCoinTransactionSerializer
 
     def get_queryset(self):
-        return CoinTransaction.objects.filter(user=self.request.user).select_related('user')
+        if getattr(self, 'swagger_fake_view', False):
+            return CoinTransaction.objects.none()
+        return CoinTransaction.objects.filter(wallet__user=self.request.user).select_related('wallet')
 
 class CustomerCoinPurchaseViewSet(BaseCustomerViewSet):
     serializer_class = CustomerCoinPurchaseSerializer
@@ -148,6 +160,8 @@ class CustomerConsultationViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Consultation.objects.none()
         return Consultation.objects.filter(customer=self.request.user.customer)
 
     def perform_create(self, serializer):
@@ -158,6 +172,8 @@ class CustomerVideoChatViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return VideoChat.objects.none()
         return VideoChat.objects.filter(customer=self.request.user.customer)
 
     def perform_create(self, serializer):
@@ -168,6 +184,8 @@ class CustomerPhoneCallViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return PhoneCall.objects.none()
         return PhoneCall.objects.filter(customer=self.request.user.customer)
 
     def perform_create(self, serializer):
@@ -178,6 +196,8 @@ class CustomerOrderViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Order.objects.none()
         return Order.objects.filter(customer=self.request.user.customer)
 
     def perform_create(self, serializer):
@@ -188,6 +208,8 @@ class CustomerRatingViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Rating.objects.none()
         return Rating.objects.filter(customer=self.request.user.customer)
 
     def perform_create(self, serializer):
@@ -198,6 +220,8 @@ class CustomerReviewViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Review.objects.none()
         return Review.objects.filter(customer=self.request.user.customer)
 
     def perform_create(self, serializer):
@@ -208,6 +232,8 @@ class CustomerFollowerViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Follower.objects.none()
         return Follower.objects.filter(customer=self.request.user.customer)
 
     def perform_create(self, serializer):
@@ -218,6 +244,8 @@ class CustomerSubscriptionViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Subscription.objects.none()
         return Subscription.objects.filter(customer=self.request.user.customer)
 
     def perform_create(self, serializer):

@@ -38,13 +38,18 @@ class APIMiddleware:
             '/api/v1/register/advisor/',
             '/static/',
             '/media/',
+            '/swagger/login/',  # Add Swagger login to public paths
+            '/swagger.json',    # Allow access to Swagger JSON
+            '/swagger/',        # Allow access to Swagger UI
+            '/redoc/',         # Allow access to ReDoc
         }
         
         # Define paths that require developer role
         self.developer_paths = {
             '/swagger/',
             '/redoc/',
-            '/api/schema/'
+            '/api/schema/',
+            '/swagger.json'
         }
         
         # Define allowed API versions
@@ -84,11 +89,18 @@ class APIMiddleware:
                     }, status=status.HTTP_403_FORBIDDEN)
             
             # Check developer role for API documentation
-            if self._is_developer_path(request.path) and not self._is_developer(request):
-                return JsonResponse({
-                    'error': 'Developer access required',
-                    'detail': 'You need developer privileges to access the API documentation'
-                }, status=status.HTTP_403_FORBIDDEN)
+            if self._is_developer_path(request.path):
+                if not self._is_authenticated(request):
+                    return JsonResponse({
+                        'error': 'Authentication required',
+                        'detail': 'Please log in to access the API documentation'
+                    }, status=status.HTTP_401_UNAUTHORIZED)
+                    
+                if not self._is_developer(request):
+                    return JsonResponse({
+                        'error': 'Developer access required',
+                        'detail': 'You need developer privileges to access the API documentation'
+                    }, status=status.HTTP_403_FORBIDDEN)
             
             # Process the request
             response = self.get_response(request)
@@ -139,7 +151,10 @@ class APIMiddleware:
             return False
         
         user = request.user
-        return user.is_staff or user.groups.filter(name='developer').exists()
+        # Allow superusers and staff members to access Swagger
+        if user.is_superuser or user.is_staff:
+            return True
+        return user.groups.filter(name='developer').exists()
 
     def _validate_api_version(self, request: HttpRequest) -> bool:
         """Validate the API version in the request path."""
@@ -187,7 +202,9 @@ SWAGGER_SETTINGS = {
             'in': 'header'
         }
     },
-    'USE_SESSION_AUTH': False,
+    'USE_SESSION_AUTH': True,  # Changed to True to use Django session auth
+    'LOGIN_URL': '/swagger/login/',
+    'LOGOUT_URL': '/admin/logout/',
     'PERSIST_AUTH': True,
     'REFETCH_SCHEMA_WITH_AUTH': True,
     'OPERATIONS_SORTER': 'method',
@@ -225,7 +242,11 @@ class SecurityLoggingMiddleware:
             '/api/v1/auth/register/',
             '/api/v1/auth/login/',
             '/api/v1/auth/token/',
-            '/api/v1/auth/token/refresh/'
+            '/api/v1/auth/token/refresh/',
+            '/swagger/login/',
+            '/swagger/',
+            '/swagger.json',
+            '/redoc/'
         ]
 
     def __call__(self, request):
@@ -297,7 +318,11 @@ class CSRFMiddleware:
             '/api/v1/auth/register/',
             '/api/v1/auth/login/',
             '/api/v1/auth/token/',
-            '/api/v1/auth/token/refresh/'
+            '/api/v1/auth/token/refresh/',
+            '/swagger/login/',
+            '/swagger/',
+            '/swagger.json',
+            '/redoc/'
         ]
 
     def __call__(self, request):

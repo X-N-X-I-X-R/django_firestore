@@ -72,34 +72,44 @@ DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
 ADMIN_EMAIL = config('ADMIN_EMAIL')
 
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ),
-    'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.AllowAny',
-    ),
-    'UNAUTHENTICATED_USER': None,
-    'DEFAULT_THROTTLE_CLASSES': [
-        'rest_framework.throttling.AnonRateThrottle',
-        'rest_framework.throttling.UserRateThrottle'
     ],
-    'DEFAULT_THROTTLE_RATES': {
-        'anon': '100/day',
-        'user': '1000/day'
-    },
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 10
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
 }
 SWAGGER_SETTINGS = {
+    'USE_SESSION_AUTH': True,
+    'LOGIN_URL': '/swagger/login/',
+    'LOGOUT_URL': '/admin/logout/',
+    'PERSIST_AUTH': True,
+    'REFETCH_SCHEMA_WITH_AUTH': True,
+    'REFETCH_SCHEMA_ON_LOGOUT': True,
+    'JSON_EDITOR': True,
     'SECURITY_DEFINITIONS': {
+        'Basic': {
+            'type': 'basic'
+        },
         'Bearer': {
             'type': 'apiKey',
             'name': 'Authorization',
             'in': 'header'
+        },
+        'Session': {
+            'type': 'apiKey',
+            'name': 'sessionid',
+            'in': 'cookie'
         }
     },
-    'USE_SESSION_AUTH': False,
-    'JSON_EDITOR': True,
+    'SECURITY_REQUIREMENTS': [
+        {'Basic': []},
+        {'Bearer': []},
+        {'Session': []}
+    ],
+    'VALIDATOR_URL': None,
 }
 
 SIMPLE_JWT = {
@@ -149,7 +159,9 @@ ROOT_URLCONF = 'project.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
+        'DIRS': [
+            BASE_DIR / 'templates',
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -174,6 +186,8 @@ CHANNEL_LAYERS = {
         },
     },
 }
+
+
 
 
 
@@ -214,8 +228,17 @@ MEDIA_URL = '/media/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOWED_ORIGINS = [
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+]
 
-    
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
 ]
 
 class StatusCodeFormatter(ColoredFormatter):
@@ -305,12 +328,16 @@ SECURE_HSTS_SECONDS = 31536000  # 1 year
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
 
-# Add CSRF exempt URLs
+# Add Swagger URLs to CSRF exempt URLs
 CSRF_EXEMPT_URLS = [
     '/api/v1/auth/register/',
     '/api/v1/auth/login/',
     '/api/v1/auth/token/',
-    '/api/v1/auth/token/refresh/'
+    '/api/v1/auth/token/refresh/',
+    '/swagger/login/',
+    '/swagger/',
+    '/swagger.json',
+    '/redoc/'
 ]
 
 
